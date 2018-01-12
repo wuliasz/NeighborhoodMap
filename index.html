@@ -1,0 +1,129 @@
+<!doctype html>
+<html>
+     <head>
+          <meta charset="utf-8">
+          <title>Neighborhood Map</title>
+
+          <style>
+
+               #actionPane {
+                    height: 100%;
+                    width: 22%;
+                    background-color: blanchedalmond;
+                    position: absolute;
+               }
+
+               #header {
+                    font-weight: bold;
+                    text-align: center;
+               }
+
+               .paneTogglerRight {
+                    color: cornsilk;
+                    text-align: center;
+                    height: 100%;
+                    width: 2%;
+                    background-color: chocolate;
+                    position: absolute;
+                    left: 22%;
+               }
+
+               .paneTogglerLeft {
+                    color: cornsilk;
+                    text-align: center;
+                    height: 100%;
+                    width: 2%;
+                    background-color: chocolate;
+                    position: absolute;
+               }
+
+
+
+               #map {
+                  bottom:0px;
+                  height: 100%;
+                  position: absolute;
+                  right: 0px;
+               }
+               .rightMap {
+                  left: 24%;
+               }
+               .fullMap {
+                  left: 3%;
+               }
+
+          </style>
+
+     </head>
+     <body>
+
+          <div id="actionPane">
+               <div id="header">Neighborhood Map</div>
+          </div>
+          <div id="paneToggler" class="paneTogglerRight"><<</div>
+
+          <div id="map" class="rightMap"></div>
+
+
+          <script>
+
+               var map;
+
+               function initializeMap() {
+
+                    map = new google.maps.Map(document.getElementById('map'), {
+                         center: {lat: 41.6102538, lng: -72.8219422},
+                         zoom: 13,
+                         mapTypeControl: false
+                    });
+
+
+                    document.getElementById('paneToggler').addEventListener('click', function () {
+                         toggleActionPane();
+                    });
+
+                    document.getElementById('paneToggler').innerHTML = getTogBarChars('<');
+
+               }
+
+               function toggleActionPane () {
+                    // toggle visibility of the action pane and resize the map
+                    var actionPane = document.getElementById('actionPane');
+                    var toggleBar = document.getElementById('paneToggler');
+                    var map = document.getElementById('map');
+                    if (actionPane.hidden) {
+                         actionPane.hidden = false;
+                         toggleBar.innerHTML = getTogBarChars('<'); // '<<';
+                         toggleBar.className = 'paneTogglerRight';
+                         map.className = "rightMap";
+                    } else {
+                         actionPane.hidden = true;
+                         toggleBar.innerHTML = getTogBarChars('>'); // '>>';
+                         toggleBar.className = 'paneTogglerLeft';
+                         map.className = "fullMap";
+                   }
+               }
+
+               function getTogBarChars (direction) {
+                    var useChar = '<';
+                    var retChar = '';
+                    if (direction == '>'){
+                         useChar = '>';
+                    }
+                    for (i=0; i < 20; i++){
+                         retChar = retChar + '<br>' + useChar;
+                    }
+                    return retChar;
+               }
+
+          </script>
+
+
+
+
+          <script async defer
+               src="https://maps.googleapis.com/maps/api/js?libraries=geometry,drawing&key=AIzaSyDCiCbk_jLIFqlH2s1gmzdIehfkP7JkTVU&v=3&callback=initializeMap">
+          </script>
+
+     </body>
+</html>
