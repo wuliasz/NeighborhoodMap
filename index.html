@@ -77,11 +77,12 @@
 // c) activate filter functionality
 // d) consider rewriting reused code.
 
-            var map;
-            var markers = [];
+          //var markers = [];
 
             // // // // MODEL // // // // // // // // // // // // // // // // // // // // // // // //
             var model = {
+            map,
+            markers: [],
             places: [
                 { name: 'Modern',
                   location: {lat: 41.313897 , lng: -72.913342 },
@@ -125,10 +126,21 @@
             var viewmodel = {
                getPlaces: function () {
                     return model.places;
+               },
+
+               getMap: function () {
+                    return model.map;
+               },
+
+               /* IT SEEMS THIS ISN'T USED ANYWAY.
+               getMarkers: function () {
+                    return model.markers[];
+               },
+               */
+
+               addMarker: function (marker) {
+                    model.markers.push(marker);
                }
-
-
-
 
             };
 
@@ -137,6 +149,8 @@
 
 
                function initializeMap() {
+
+                    var map =  viewmodel.getMap();
 
                     map = new google.maps.Map(document.getElementById('map'), {
                          center: {lat: 41.6102538, lng: -72.8219422},
@@ -183,7 +197,15 @@
                     }
                     // i don't see how i could write them differently,
                     // BUT NOTE THAT this is inspired from Udacity examples.
-                    markers.push(marker);
+                    // replaces by mvvm -
+                    // markers.push(marker);
+
+                    // alert('GOT HERE 1');
+                    // var theMarkers = model.markers;
+                    viewmodel.addMarker(marker);
+
+                    // theMarkers.push(marker);
+                    //alert('GOT HERE 2');
 
 // move this after finishing marker code...
                     map.fitBounds(mapBounds);
@@ -205,7 +227,8 @@
                }
 
 
-               // populateInfoWindow and getStreetView functions taken from UDACITY samples.
+               // populateInfoWindow slightly modified from UDACITY examples. i changed to MVVM.
+               // getStreetView functions taken from UDACITY examples.
                // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                // This function populates the infowindow when the marker is clicked. We'll only allow
                // one infowindow which will open at the marker that is clicked, and populate based
@@ -230,9 +253,11 @@
                          function getStreetView(data, status) {
                            if (status == google.maps.StreetViewStatus.OK) {
                              var nearStreetViewLocation = data.location.latLng;
-                             var heading = google.maps.geometry.spherical.computeHeading(
-                                           nearStreetViewLocation, marker.position);
-                              infowindow.setContent('<div>' + marker.title + '</div><div id="pano"></div>');
+                             //var heading = google.maps.geometry.spherical.computeHeading(
+                             //              nearStreetViewLocation, marker.position);
+                             var heading = 0;
+
+                              infowindow.setContent('<div>V=Markers4' + marker.title + '</div><div id="pano"></div>');
                               var panoramaOptions = {
                                   position: nearStreetViewLocation,
                                   pov: {
@@ -253,7 +278,8 @@
 /**************/
 
                          // Open the infowindow on the correct marker.
-                         infowindow.open(map, marker);
+                         var thisMap = viewmodel.getMap();
+                         infowindow.open(thisMap, marker);
                     }
                }
 
