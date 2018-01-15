@@ -14,29 +14,38 @@
                }
 
                #header {
+                    font-family: Arial;
+                    color: cadetblue;
                     font-weight: bold;
                     text-align: center;
                }
 
-               .paneTogglerRight {
-                    color: cornsilk;
-                    text-align: center;
+               #separator {
                     height: 100%;
-                    width: 2%;
-                    background-color: chocolate;
+                    width: 1%;
+                    background-color: cornsilk;
                     position: absolute;
                     left: 22%;
                }
 
-               .paneTogglerLeft {
-                    color: cornsilk;
-                    text-align: center;
-                    height: 100%;
-                    width: 2%;
-                    background-color: chocolate;
-                    position: absolute;
-               }
+               .placeList {
+                    font-family: Arial;
+                    font-size: smaller;
+                    color: cadetblue;
+                    font-weight: bold;
+                    padding-top: 0.5em;
+                    list-style-type: none;
+                }
 
+
+
+               .placeListHighlight {
+                    font-family: Arial;
+                    color: cadetblue;
+                    font-weight: bold;
+                    font-size: larger;
+                    padding-top: 0.5em;
+               }
 
 
                #map {
@@ -46,7 +55,7 @@
                   right: 0px;
                }
                .rightMap {
-                  left: 24%;
+                  left: 23%;
                }
                .fullMap {
                   left: 3%;
@@ -58,12 +67,12 @@
      <body>
 
           <div id="actionPane">
-               <div id="header">Neighborhood Map (w Model)</div>
+               <div id="header">Neighborhood Map (18-1-15-16-30)</div>
                <ul data-bind="foreach: placeList">
-                    <li data-bind="text: name" ></li>
+                    <li data-bind="text: name" class="placeList" id="placeListItem"></li>
                </ul>
           </div>
-          <div id="paneToggler" class="paneTogglerRight"><<</div>
+          <div id="separator">&nbsp;</div>
 
           <div id="map" class="rightMap"></div>
 
@@ -77,9 +86,8 @@
 // c) activate filter functionality
 // d) consider rewriting reused code.
 
-          //var markers = [];
-
-            // // // // MODEL // // // // // // // // // // // // // // // // // // // // // // // //
+            /// // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
+            // // // // MODEL // // // // // // // // // // // // // // // // // // // // // // // // // ///
             var model = {
             map,
             markers: [],
@@ -118,18 +126,103 @@
                    category: 'Biking',
                    isFavorite: false
                 }
-               ]
+               ],
+
+               // map styles from taken from:  https://snazzymaps.com/style/61/blue-essence
+               mapStyles: [
+                            {
+                                "featureType": "landscape.natural",
+                                "elementType": "geometry.fill",
+                                "stylers": [
+                                    {
+                                        "visibility": "on"
+                                    },
+                                    {
+                                        "color": "#e0efef"
+                                    }
+                                ]
+                            },
+                            {
+                                "featureType": "poi",
+                                "elementType": "geometry.fill",
+                                "stylers": [
+                                    {
+                                        "visibility": "on"
+                                    },
+                                    {
+                                        "hue": "#1900ff"
+                                    },
+                                    {
+                                        "color": "#c0e8e8"
+                                    }
+                                ]
+                            },
+                            {
+                                "featureType": "road",
+                                "elementType": "geometry",
+                                "stylers": [
+                                    {
+                                        "lightness": 100
+                                    },
+                                    {
+                                        "visibility": "simplified"
+                                    }
+                                ]
+                            },
+                            {
+                                "featureType": "road",
+                                "elementType": "labels",
+                                "stylers": [
+                                    {
+                                        "visibility": "off"
+                                    }
+                                ]
+                            },
+                            {
+                                "featureType": "transit.line",
+                                "elementType": "geometry",
+                                "stylers": [
+                                    {
+                                        "visibility": "on"
+                                    },
+                                    {
+                                        "lightness": 700
+                                    }
+                                ]
+                            },
+                            {
+                                "featureType": "water",
+                                "elementType": "all",
+                                "stylers": [
+                                    {
+                                        "color": "#7dcdcd"
+                                    }
+                                ]
+                            }
+                        ]
+
             };
 
 
-            // // // // VIEW-MODEL // // // // // // // // // // // // // // // // // // // // // // // //
+            /// // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
+            // // // // VIEW-MODEL  // // // // // // // // // // // // // // // // // // // // // // // ///
             var viewmodel = {
+
+               init: function() {
+                    //view.init();
+                    ko.applyBindings(new view.init());
+               },
+
                getPlaces: function () {
                     return model.places;
                },
 
                getMap: function () {
                     return model.map;
+               },
+
+               getMapStyles: function () {
+                    return model.mapStyles;
                },
 
                /* IT SEEMS THIS ISN'T USED ANYWAY.
@@ -140,33 +233,27 @@
 
                addMarker: function (marker) {
                     model.markers.push(marker);
-               }
+               },
 
-            };
+               initializeMap: function () {
 
-
-
-
-
-               function initializeMap() {
-
-                    var map =  viewmodel.getMap();
+                    var map       =  viewmodel.getMap();
+                    var useStyles =  viewmodel.getMapStyles();
 
                     map = new google.maps.Map(document.getElementById('map'), {
                          center: {lat: 41.6102538, lng: -72.8219422},
+                         styles: useStyles,
                          zoom: 13,
                          mapTypeControl: false
                     });
 
                     var placeInfoWindow = new google.maps.InfoWindow();
-/*
-                    var defaultIcon = makeMarkerIcon('0091ff');
-                    var favIcon     = makeMarkerIcon('FFFF24');
-*/
-                    var mImageDflt    = makeIcon('99AACC', 21, 34, 21, 34);
-                    var mImageFav     = makeIcon('CCCC33', 21, 34, 21, 34);
-                    var mImageDfltSel = makeIcon('99AACC', 21, 34, 21, 34);
-                    var mImageFavSel  = makeIcon('CCCC33', 21, 34, 21, 34);
+
+                    // ICON SIZES (21, 34) TAKEN FROM UDACITY EXAMPLES
+                    var mImageDflt    = viewmodel.makeIcon('99AACC', 21, 34, 21, 34);
+                    var mImageFav     = viewmodel.makeIcon('CCCC33', 21, 34, 21, 34);
+                    var mImageDfltSel = viewmodel.makeIcon('99AACC', 21, 34, 21, 34);
+                    var mImageFavSel  = viewmodel.makeIcon('CCCC33', 21, 34, 21, 34);
                     var mapBounds = new google.maps.LatLngBounds();
 
                     var thePlaces = viewmodel.getPlaces();
@@ -190,24 +277,12 @@
 
                          // anticipate and respond to click event
                          marker.addListener('click', function(){
-                              populateInfoWindow(this, placeInfoWindow);
+                              viewmodel.populateInfoWindow(this, placeInfoWindow);
                          });
 
 
                     }
-                    // i don't see how i could write them differently,
-                    // BUT NOTE THAT this is inspired from Udacity examples.
-                    // replaces by mvvm -
-                    // markers.push(marker);
-
-                    // alert('GOT HERE 1');
-                    // var theMarkers = model.markers;
                     viewmodel.addMarker(marker);
-
-                    // theMarkers.push(marker);
-                    //alert('GOT HERE 2');
-
-// move this after finishing marker code...
                     map.fitBounds(mapBounds);
                     /*
                     marker.addListener('click', function(){
@@ -215,16 +290,7 @@
                     }
                     */
 
-
-                    // **** NOTE *** I THINK THE RUBRIC SAYS TO USE KNOCKOUT...(because it changes state?) CHANGE THIS:
-                    document.getElementById('paneToggler').addEventListener('click', function () {
-                         toggleActionPane();
-                    });
-
-                    // **** NOTE *** I THINK RUBRIC SAYS TO USE KNOCKOUT...(because it changes state?) CHANGE THIS:
-                    document.getElementById('paneToggler').innerHTML = getTogBarChars('<');
-
-               }
+               },
 
 
                // populateInfoWindow slightly modified from UDACITY examples. i changed to MVVM.
@@ -233,7 +299,7 @@
                // This function populates the infowindow when the marker is clicked. We'll only allow
                // one infowindow which will open at the marker that is clicked, and populate based
                // on that markers position.
-               function populateInfoWindow(marker, infowindow) {
+               populateInfoWindow: function (marker, infowindow) {
                     // Check to make sure the infowindow is not already opened on this marker.
                     if (infowindow.marker != marker) {
                          // Clear the infowindow content to give the streetview time to load.
@@ -253,10 +319,8 @@
                          function getStreetView(data, status) {
                            if (status == google.maps.StreetViewStatus.OK) {
                              var nearStreetViewLocation = data.location.latLng;
-                             //var heading = google.maps.geometry.spherical.computeHeading(
-                             //              nearStreetViewLocation, marker.position);
-                             var heading = 0;
-
+                             var heading = google.maps.geometry.spherical.computeHeading(
+                                           nearStreetViewLocation, marker.position);
                               infowindow.setContent('<div>V=Markers4' + marker.title + '</div><div id="pano"></div>');
                               var panoramaOptions = {
                                   position: nearStreetViewLocation,
@@ -281,8 +345,7 @@
                          var thisMap = viewmodel.getMap();
                          infowindow.open(thisMap, marker);
                     }
-               }
-
+               },
 
 
 
@@ -291,7 +354,7 @@
                 // found here:  ***TODO ADD THE LINK TO THE GITHUB REPOSITORY *** *** *** ***
                // i took the ICON URL and default sizes from the UDACITY example.
                // https://developers.google.com/maps/documentation/javascript/3.exp/reference#Icon
-               function makeIcon (markerColor, useWidth, useHeight, scaledWidth, scaledHeight) {
+               makeIcon: function (markerColor, useWidth, useHeight, scaledWidth, scaledHeight) {
                     var icon = {
                          url: 'http://chart.googleapis.com/chart?chst=d_map_spin&chld=1.15|0|' + markerColor + '|40|_|%E2%80%A2',
                          size: new google.maps.Size(useWidth, useHeight),
@@ -302,66 +365,59 @@
                     return icon;
                }
 
+            };
 
-               // **** NOTE *** RUBRIC SAYS TO USE KNOCKOUT... CHANGE THIS:
-               function toggleActionPane () {
-                    // toggle visibility of the action pane and resize the map
-                    var actionPane = document.getElementById('actionPane');
-                    var toggleBar = document.getElementById('paneToggler');
-                    var map = document.getElementById('map');
-                    if (actionPane.hidden) {
-                         actionPane.hidden = false;
-                         toggleBar.innerHTML = getTogBarChars('<'); // '<<';
-                         toggleBar.className = 'paneTogglerRight';
-                         map.className = "rightMap";
-                    } else {
-                         actionPane.hidden = true;
-                         toggleBar.innerHTML = getTogBarChars('>'); // '>>';
-                         toggleBar.className = 'paneTogglerLeft';
-                         map.className = "fullMap";
-                   }
+
+
+            /// // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
+            // // // // VIEW  // // // // // // // // // // // // // // // // // // // // // // // // // ///
+            var view = {
+
+                Place: function (data) {
+                    this.name       = ko.observable(data.name);
+                    this.location   = ko.observable(data.location);
+                    this.desc       = ko.observable(data.desc);
+                    this.category   = ko.observable(data.category);
+                    this.isFavorite = ko.observable(data.isFavorite);
+                },
+
+                init: function() {
+                // here in init we set up connections between KO and the DOM
+                // and define listeners... etc.
+
+                    var self = this;
+
+                    // NOTE: IMPLICIT placeList DECLARATION WITH view LEVEL SCOPE
+                    //       its the only way i could get it to work.
+                    placeList = ko.observableArray([]);
+
+                    this.placeListItem = document.getElementById('placeListItem');
+
+                    view.render();
+
+                },
+
+                render: function() {
+                // here in render, we'll display the page
+                // adjusting to line up with changes from recent events
+
+                     var thePlaces = viewmodel.getPlaces();
+                     thePlaces.forEach(function(individualPlace){
+                         placeList.push(new view.Place(individualPlace));
+                         // i'll build upon this. this.placeListItem
+                    });
+
                }
 
-               // **** NOTE *** RUBRIC SAYS TO USE KNOCKOUT... CHANGE THIS:
-               function getTogBarChars (direction) {
-                    var useChar = '<';
-                    var retChar = '';
-                    if (direction == '>'){
-                         useChar = '>';
-                    }
-                    for (i=0; i < 20; i++){
-                         retChar = retChar + '<br>' + useChar;
-                    }
-                    return retChar;
-               }
+            };
 
-               // ===============================================================================
 
-            var Place = function (data) {
-               this.name       = ko.observable(data.name);
-               this.location   = ko.observable(data.location);
-               this.desc       = ko.observable(data.desc);
-               this.category   = ko.observable(data.category);
-               this.isFavorite = ko.observable(data.isFavorite);
-            }
-
-            var ViewModel = function () {
-                var self = this;
-
-                this.placeList = ko.observableArray([]);
-                thePlaces = viewmodel.getPlaces();
-                thePlaces.forEach(function(individualPlace){
-                    self.placeList.push(new Place(individualPlace));
-                });
-
-            }
-
-            ko.applyBindings(new ViewModel());
+            viewmodel.init();
 
           </script>
 
           <script async defer
-               src="https://maps.googleapis.com/maps/api/js?libraries=geometry,drawing&key=AIzaSyDCiCbk_jLIFqlH2s1gmzdIehfkP7JkTVU&v=3&callback=initializeMap">
+               src="https://maps.googleapis.com/maps/api/js?libraries=geometry,drawing&key=AIzaSyDCiCbk_jLIFqlH2s1gmzdIehfkP7JkTVU&v=3&callback=viewmodel.initializeMap">
           </script>
 
 
