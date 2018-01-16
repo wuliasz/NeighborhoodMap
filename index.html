@@ -37,8 +37,6 @@
                     list-style-type: none;
                 }
 
-
-
                .placeListHighlight {
                     font-family: Arial;
                     color: cadetblue;
@@ -46,7 +44,6 @@
                     font-size: larger;
                     padding-top: 0.5em;
                }
-
 
                #map {
                   bottom:0px;
@@ -67,9 +64,9 @@
      <body>
 
           <div id="actionPane">
-               <div id="header">Neighborhood Map (18-1-15-16-30)</div>
+               <div id="header">Neighborhood Map (18-1-15-22-00)</div>
                <ul data-bind="foreach: placeList">
-                    <li data-bind="text: name" class="placeList" id="placeListItem"></li>
+                    <li data-bind="click: $parent.highlightLoc, text: name" class="placeList" id="placeListItem"></li>
                </ul>
           </div>
           <div id="separator">&nbsp;</div>
@@ -392,6 +389,9 @@
                     placeList = ko.observableArray([]);
 
                     this.placeListItem = document.getElementById('placeListItem');
+                    this.highlightLoc = function () {
+                                alert('highlight ');
+                    };
 
                     view.render();
 
@@ -401,13 +401,26 @@
                 // here in render, we'll display the page
                 // adjusting to line up with changes from recent events
 
+// now i'm changing this to dynamically build the list.
+// IN ORDER TO ADD LISTENERS?
+//               <ul data-bind="foreach: placeList">
+//                    <li data-bind="text: name" class="placeList" id="placeListItem"></li>
+//               </ul>
+
+
                      var thePlaces = viewmodel.getPlaces();
                      thePlaces.forEach(function(individualPlace){
                          placeList.push(new view.Place(individualPlace));
-                         // i'll build upon this. this.placeListItem
                     });
 
-               }
+               },
+
+
+
+               // it didn't work here.   yes, i had the comma at the prior }
+               //highlightLoc: function () {
+               //     alert('hightlight me!');
+               //}
 
             };
 
