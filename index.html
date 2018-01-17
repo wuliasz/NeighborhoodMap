@@ -33,16 +33,22 @@
                     font-size: smaller;
                     color: cadetblue;
                     font-weight: bold;
-                    padding-top: 0.5em;
+                    padding-top: 1em;
                     list-style-type: none;
                 }
 
                .placeListHighlight {
                     font-family: Arial;
+                    font-size: larger;
                     color: cadetblue;
                     font-weight: bold;
-                    font-size: larger;
                     padding-top: 0.5em;
+               }
+
+
+               #filter {
+                    position: absolute;
+                    top: 50%;
                }
 
                #map {
@@ -64,34 +70,30 @@
      <body>
 
           <div id="actionPane">
-               <div id="header">Neighborhood Map (18-1-15-22-00)</div>
-               <ul data-bind="foreach: placeList">
-                    <li data-bind="click: $parent.highlightLoc.bind($data, $index()), text: name" class="placeList" id="placeListItem">
-                    </li>
-               </ul>
-               <div id="placeDesc" data-bind="visible:  currentDescription"></div>
+               <div id="header">Neighborhood Map (18-1-16-16-14)</div>
+               <!---- NOTE: NEXT TWO DIVS WERE UL/LI BUT THESE MIGHT FORMAT BETTER ---->
+               <div data-bind="foreach: placeList">
+                    <div data-bind="click: $parent.highlightLoc.bind($data, $index()),
+                                    text: name,
+                                    attr: { class: itemclass }"
+                         zclass="placeList"
+                         id="placeListItem">
+                    </div>
+               </div>
+               <span id="selDesc" data-bind="text: selectedDescription"></div>
 
-               <div id="catFilterLabel">Filter by Category:</div>
 
-
-
-               <select id="categorySelect" data-bind="options: filterTypes,
-                                                      value: selectedCategory,
-                                                      event: {change: applyFilters}">
-               </select>
-
-                <div data-bind="visible: selectedCategory">
-                    Viewing Category:
-                    <span id="selectedCategory" data-bind="text: selectedCategory "></span>
+               <div id="filter">
+                   <div id="catFilterLabel">Filter by Category:</div>
+                   <select id="categorySelect" data-bind="options: filterTypes,
+                                                          value: selectedCategory,
+                                                          event: {change: applyFilters}">
+                   </select>
+                    <div data-bind="visible: selectedCategory">
+                        Viewing Category:
+                        <span id="selectedCategory" data-bind="text: selectedCategory "></span>
+                    </div>
                 </div>
-
-
-
-
-
-
-
-
           </div>
           <div id="separator">&nbsp;</div>
 
@@ -101,11 +103,17 @@
 
           <script>
 
-// TO DO 1/14/18:
-// a) convert to formal MVVM
-// b) add a filter to the pane.
-// c) activate filter functionality
-// d) consider rewriting reused code.
+// TO DO 1/16/18:
+// v a) convert to formal MVVM
+// v b) add a filter to the pane.
+// v c) activate filter functionality
+// x d) consider rewriting reused code.
+// o e) activate highlighting -
+//      when selecting from list or marker:
+//      highlight the other;  show additional info
+//   f) add 3rd party api something.  such as: wikipedia, nt times, fourscquare
+//      add it to the info window.
+//   g) complete styling.
 
             /// // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
             // // // // MODEL // // // // // // // // // // // // // // // // // // // // // // // // // ///
@@ -358,12 +366,13 @@
 
 
 
-                // makeIcon function is a modified copy of makeMarkerIcon function taken from UDACITY ud864 project sample:
+                // makeIcon function is a modified copy of
+                // makeMarkerIcon function taken from UDACITY ud864 project sample:
                 // Project_Code_5_BeingStylish.html
                 // found here:  ***TODO ADD THE LINK TO THE GITHUB REPOSITORY *** *** *** ***
-               // i took the ICON URL and default sizes from the UDACITY example.
-               // https://developers.google.com/maps/documentation/javascript/3.exp/reference#Icon
-               makeIcon: function (markerColor, useWidth, useHeight, scaledWidth, scaledHeight) {
+                // i took the ICON URL and default sizes from the UDACITY example.
+                // https://developers.google.com/maps/documentation/javascript/3.exp/reference#Icon
+                makeIcon: function (markerColor, useWidth, useHeight, scaledWidth, scaledHeight) {
                     var icon = {
                          url: 'http://chart.googleapis.com/chart?chst=d_map_spin&chld=1.15|0|' + markerColor + '|40|_|%E2%80%A2',
                          size: new google.maps.Size(useWidth, useHeight),
@@ -372,7 +381,7 @@
                          scaledSize: new google.maps.Size(scaledWidth, scaledHeight)
                     };
                     return icon;
-               }
+                }
 
             };
 
@@ -388,8 +397,18 @@
                     this.desc       = ko.observable(data.desc);
                     this.category   = ko.observable(data.category);
                     this.isFavorite = ko.observable(data.isFavorite);
+                    this.itemclass  = ko.observable('placeList');
                 },
 
+
+                HighlightedPlace: function (data) {
+                    this.name       = ko.observable(data.name);
+                    this.location   = ko.observable(data.location);
+                    this.desc       = ko.observable(data.desc);
+                    this.category   = ko.observable(data.category);
+                    this.isFavorite = ko.observable(data.isFavorite);
+                    this.itemclass  = ko.observable('placeListHighlight');
+                },
 
 
                 init: function() {
@@ -398,51 +417,105 @@
 
                     var self = this;
 
-                    // NOTE: IMPLICIT placeList DECLARATION WITH view LEVEL SCOPE
+                    // NOTE: IMPLICIT DECLARATION WITH view LEVEL SCOPE
                     //       its the only way i could get it to work.
-                    placeList          = ko.observableArray([]);
-                    currentDescription = ko.observable();
+                    placeList           = ko.observableArray([]);
+                    currentDescription  = ko.observable();
+                    selectedDescription = ko.observable(document.getElementById('selDesc'));
+                    selectedDescription('');
+                    selectedIndex       = ko.observable();
+            /* TOOK OFF THE this. FROM selectedCategory FOR THIS NEXT PHASE */
+                    selectedCategory    = ko.observable(document.getElementById('selectedCategory'));
+                    selectedCategory('All');
 
-                    this.placeListItem = document.getElementById('placeListItem');
+                    //this.placeListItem      = document.getElementById('placeListItem');
+                    this.filterTypes        = ko.observableArray(['All','Food','Biking','Hiking']);
+                    this.categorySelector   = ko.observableArray(document.getElementById('categorySelect'));
+
                     this.highlightLoc = function (index) {
+                        selectedIndex(index);
+
+/*
                         var thisPlace = viewmodel.getPlace(index);
-                        currentDescription = thisPlace.desc;
-                        alert(currentDescription);
+                        useDescription = thisPlace.desc;
+
+                        // change the style of the selected item to highlight it.
+                        for (var i = 0; i < placeList().length; i++) {
+                            var otherPlace = placeList()[i];
+
+                            // alert('opc=' + otherPlace.name());  THIS RETURNS THE NAME PROPETY
+                            // alert('opc=' + otherPlace.desc());  THIS RETURNS THE DESCRIPTION
+                            // alert('opc=' + otherPlace.class()); this doesn't do anything
+                            // alert('opc=' + otherPlace.className()); this doesn't do anything
+                            // alert('opc=' + otherPlace.class());     this doesn't do anything
+                            //alert('opc=' + otherPlace.attr('class'));
+                            if (i == index) {
+                                otherPlace.class = 'placeListHighlight';
+                            } else {
+                               // alert('this CLASS is ' + placeList()[i].class);
+                               //thisPlace.className = "placeList";
+                                otherPlace.class = 'placeList';
+                            }
+                        }
+*/
+                        view.render();
+        // 1 17 18 1630 move                selectedDescription(thisPlace.desc);
+
+
+                        // identify the respective marker for the selected item.
+                        // change it's icon to highlight it.
                     };
 
-                    this.filterTypes      = ko.observableArray(['All','Food','Biking','Hiking']);
-                    this.categorySelector = ko.observableArray(document.getElementById('categorySelect'));
-                    this.selectedCategory = ko.observable(document.getElementById('selectedCategory'));
 
-                    this.filterBy = function (filterType) {
-                            alert('filtering by ' + filterType);
-                    };
+                    //this.filterBy = function (filterType) {
+                    //    alert('filtering by ' + filterType);
+                    //};
 
                     this.applyFilters = function () {
-                        //alert('apply filter - ' + this.selectedCategory());
-                        //alert('apply filter at element: ' + this.filterTypes.indexOf(this.selectedCategory()));
-                        var x = placeList.removeAll();
-                        var thePlaces = viewmodel.getPlaces();
-                        var currentCategory = this.selectedCategory();
-                        thePlaces.forEach(function(individualPlace){
-                            var thisPlace = new view.Place(individualPlace);
-                            if (currentCategory == 'All' || thisPlace.category() == currentCategory) {
-                                placeList.push(thisPlace);
-                            }
-                        });
+                        selectedIndex(-1);
+                        view.render();
                     };
 
                     view.render();
                 },
 
                 render: function() {
-                    var thePlaces = viewmodel.getPlaces();
+                    placeList.removeAll();
+                    var thePlaces       = viewmodel.getPlaces();
+                    var currentCategory = selectedCategory();
+                    var currentIndex    = selectedIndex();
+
+                    //alert('curCat=' + currentCategory);
+                    var thisIndex = -1;
+                    var thisPlace;
+
+                    selectedDescription('');
+                    var useDescription = '';
+
                     thePlaces.forEach(function(individualPlace){
-                            placeList.push(new view.Place(individualPlace));
+                        //placeList.push(new view.Place(individualPlace));
+                        /*
+                        if (thisIndex == currentIndex) {
+                            thisPlace = new view.HighlightedPlace(individualPlace);
+                        } else {
+
+                        }
+                        */
+                            thisPlace = new view.Place(individualPlace);
+                        var thisCat = thisPlace.category();
+
+                        if (currentCategory == 'All' || thisPlace.category() == currentCategory) {
+                            thisIndex++;
+                            if (thisIndex == currentIndex) {
+                                thisPlace = new view.HighlightedPlace(individualPlace);
+                                selectedDescription(thisPlace.desc());
+                            }
+                            placeList.push(thisPlace);
+                        }
                     });
+
                 }
             };
-
 
             viewmodel.init();
 
