@@ -66,8 +66,32 @@
           <div id="actionPane">
                <div id="header">Neighborhood Map (18-1-15-22-00)</div>
                <ul data-bind="foreach: placeList">
-                    <li data-bind="click: $parent.highlightLoc, text: name" class="placeList" id="placeListItem"></li>
+                    <li data-bind="click: $parent.highlightLoc.bind($data, $index()), text: name" class="placeList" id="placeListItem">
+                    </li>
                </ul>
+               <div id="placeDesc" data-bind="visible:  currentDescription"></div>
+
+               <div id="catFilterLabel">Filter by Category:</div>
+
+
+
+               <select id="categorySelect" data-bind="options: filterTypes,
+                                                      value: selectedCategory,
+                                                      event: {change: applyFilters}">
+               </select>
+
+                <div data-bind="visible: selectedCategory">
+                    Viewing Category:
+                    <span id="selectedCategory" data-bind="text: selectedCategory "></span>
+                </div>
+
+
+
+
+
+
+
+
           </div>
           <div id="separator">&nbsp;</div>
 
@@ -214,6 +238,10 @@
                     return model.places;
                },
 
+               getPlace: function (atIndex) {
+                    return model.places[atIndex];
+               },
+
                getMap: function () {
                     return model.map;
                },
@@ -249,8 +277,8 @@
                     // ICON SIZES (21, 34) TAKEN FROM UDACITY EXAMPLES
                     var mImageDflt    = viewmodel.makeIcon('99AACC', 21, 34, 21, 34);
                     var mImageFav     = viewmodel.makeIcon('CCCC33', 21, 34, 21, 34);
-                    var mImageDfltSel = viewmodel.makeIcon('99AACC', 21, 34, 21, 34);
-                    var mImageFavSel  = viewmodel.makeIcon('CCCC33', 21, 34, 21, 34);
+                    var mImageDfltSel = viewmodel.makeIcon('99AACC', 26, 41, 26, 41);
+                    var mImageFavSel  = viewmodel.makeIcon('CCCC33', 26, 41, 26, 41);
                     var mapBounds = new google.maps.LatLngBounds();
 
                     var thePlaces = viewmodel.getPlaces();
@@ -299,48 +327,32 @@
                populateInfoWindow: function (marker, infowindow) {
                     // Check to make sure the infowindow is not already opened on this marker.
                     if (infowindow.marker != marker) {
-                         // Clear the infowindow content to give the streetview time to load.
-                         infowindow.setContent('');
-                         infowindow.marker = marker;
-                         // Make sure the marker property is cleared if the infowindow is closed.
-                         infowindow.addListener('closeclick', function() {
-                           infowindow.marker = null;
-                         });
+                        // Clear the infowindow content to give the streetview time to load.
+                        infowindow.setContent('');
+                        infowindow.marker = marker;
+                        // Make sure the marker property is cleared if the infowindow is closed.
+                        infowindow.addListener('closeclick', function() {
+                        infowindow.marker = null;
+                        });
 
-/************/
-                         var streetViewService = new google.maps.StreetViewService();
-                         var radius = 50;
-                         // In case the status is OK, which means the pano was found, compute the
-                         // position of the streetview image, then calculate the heading, then get a
-                         // panorama from that and set the options
-                         function getStreetView(data, status) {
-                           if (status == google.maps.StreetViewStatus.OK) {
-                             var nearStreetViewLocation = data.location.latLng;
-                             var heading = google.maps.geometry.spherical.computeHeading(
-                                           nearStreetViewLocation, marker.position);
-                              infowindow.setContent('<div>V=Markers4' + marker.title + '</div><div id="pano"></div>');
-                              var panoramaOptions = {
-                                  position: nearStreetViewLocation,
-                                  pov: {
-                                      heading: heading,
-                                      pitch: 30
-                                  }
-                              };
-                             var panorama = new google.maps.StreetViewPanorama(
-                                            document.getElementById('pano'), panoramaOptions);
-                           } else {
-                             infowindow.setContent('<div>' + marker.title + '</div>' +
-                               '<div>No Street View Found</div>');
-                           }
-                         }
-                         // Use streetview service to get the closest streetview image within
-                         // 50 meters of the markers position
-                         streetViewService.getPanoramaByLocation(marker.position, radius, getStreetView);
-/**************/
+                        var thisPlace = viewmodel.getPlace(marker.id);
+                        var useContent = '<div id="infowindowtitle">' + marker.title + '</div>';
+                        useContent = useContent + '<div id="infowindow">' + thisPlace.desc + '</div>';
+                        infowindow.setContent(useContent);
+                        //function setInfoWindowContent () {
+                        //if (status == google.maps.StreetViewStatus.OK) {
 
-                         // Open the infowindow on the correct marker.
-                         var thisMap = viewmodel.getMap();
-                         infowindow.open(thisMap, marker);
+                        //   infowindow.setContent('<div>V=Markers4' + marker.title + '</div><div id="pano"></div>');
+
+                        //} else {
+                        //  infowindow.setContent('<div>' + marker.title + '</div>' +
+                        //    '<div>No Street View Found</div>');
+                        //}
+                        //}
+
+                        // Open the infowindow on the correct marker.
+                        var thisMap = viewmodel.getMap();
+                        infowindow.open(thisMap, marker);
                     }
                },
 
@@ -378,6 +390,8 @@
                     this.isFavorite = ko.observable(data.isFavorite);
                 },
 
+
+
                 init: function() {
                 // here in init we set up connections between KO and the DOM
                 // and define listeners... etc.
@@ -386,42 +400,47 @@
 
                     // NOTE: IMPLICIT placeList DECLARATION WITH view LEVEL SCOPE
                     //       its the only way i could get it to work.
-                    placeList = ko.observableArray([]);
+                    placeList          = ko.observableArray([]);
+                    currentDescription = ko.observable();
 
                     this.placeListItem = document.getElementById('placeListItem');
-                    this.highlightLoc = function () {
-                                alert('highlight ');
+                    this.highlightLoc = function (index) {
+                        var thisPlace = viewmodel.getPlace(index);
+                        currentDescription = thisPlace.desc;
+                        alert(currentDescription);
+                    };
+
+                    this.filterTypes      = ko.observableArray(['All','Food','Biking','Hiking']);
+                    this.categorySelector = ko.observableArray(document.getElementById('categorySelect'));
+                    this.selectedCategory = ko.observable(document.getElementById('selectedCategory'));
+
+                    this.filterBy = function (filterType) {
+                            alert('filtering by ' + filterType);
+                    };
+
+                    this.applyFilters = function () {
+                        //alert('apply filter - ' + this.selectedCategory());
+                        //alert('apply filter at element: ' + this.filterTypes.indexOf(this.selectedCategory()));
+                        var x = placeList.removeAll();
+                        var thePlaces = viewmodel.getPlaces();
+                        var currentCategory = this.selectedCategory();
+                        thePlaces.forEach(function(individualPlace){
+                            var thisPlace = new view.Place(individualPlace);
+                            if (currentCategory == 'All' || thisPlace.category() == currentCategory) {
+                                placeList.push(thisPlace);
+                            }
+                        });
                     };
 
                     view.render();
-
                 },
 
                 render: function() {
-                // here in render, we'll display the page
-                // adjusting to line up with changes from recent events
-
-// now i'm changing this to dynamically build the list.
-// IN ORDER TO ADD LISTENERS?
-//               <ul data-bind="foreach: placeList">
-//                    <li data-bind="text: name" class="placeList" id="placeListItem"></li>
-//               </ul>
-
-
-                     var thePlaces = viewmodel.getPlaces();
-                     thePlaces.forEach(function(individualPlace){
-                         placeList.push(new view.Place(individualPlace));
+                    var thePlaces = viewmodel.getPlaces();
+                    thePlaces.forEach(function(individualPlace){
+                            placeList.push(new view.Place(individualPlace));
                     });
-
-               },
-
-
-
-               // it didn't work here.   yes, i had the comma at the prior }
-               //highlightLoc: function () {
-               //     alert('hightlight me!');
-               //}
-
+                }
             };
 
 
