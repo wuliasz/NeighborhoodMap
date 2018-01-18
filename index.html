@@ -441,7 +441,7 @@
                     selectedCategory    = ko.observable(document.getElementById('selectedCategory'));
                     selectedCategory('All');
 
-//                    bounceIndex         = ko.observable(-1);
+                    bounceIndex         = ko.observable(-1);
 
                     //this.placeListItem      = document.getElementById('placeListItem');
                     this.filterTypes        = ko.observableArray(['All','Food','Biking','Hiking']);
@@ -451,7 +451,7 @@
 
                         selectedIndex(index);
 
-//                        bounceIndex(-1);
+                        bounceIndex(index);
                 /* THIS WORKS:
                         theMarkers = viewmodel.getMarkers();
                         for (var i = 0; i < theMarkers.length; i++) {
@@ -491,10 +491,32 @@
         // 1 17 18 1630 move                selectedDescription(thisPlace.desc);
 
 
+/*
+
+
+                        if (currentCategory == 'All' || thisPlace.category() == currentCategory) {
+                            thisIndex++;
+                            if (thisIndex == currentIndex) {
+                                thisPlace = new view.HighlightedPlace(individualPlace);
+                                selectedDescription(thisPlace.desc());
+                            }
+                            placeList.push(thisPlace);
+                        }
+*/
+
+/*
+
+IT IS STARTING TO WORK...
 
 
                         theMarkers = viewmodel.getMarkers();
                         for (var i = 0; i < theMarkers.length; i++) {
+
+                            var thePlace = viewmodel.getPlace(i);
+// SOOOO BIZARRE!!! THIS STATEMENT WOULD ABSOLUTELY NOT WORK USING ()
+// implied to be a view.Place... is that the difference?
+                            var theCat = thePlace.category;
+
                             thisMarker = theMarkers[i];
                             if (i == index) {
                                 thisMarker.setAnimation(google.maps.Animation.BOUNCE);
@@ -502,7 +524,7 @@
                                 thisMarker.setAnimation(null);
                             }
                         }
-
+*/
 
 
 
@@ -517,6 +539,7 @@
 
                     this.applyFilters = function () {
                         selectedIndex(-1);
+                        bounceIndex(-1);
                         view.render();
                     };
 
@@ -531,45 +554,44 @@
 
                     //alert('curCat=' + currentCategory);
                     var thisIndex = -1;
-                    //var actualIndex = -1;
+                    var actualIndex = -1;
                     var thisPlace;
 
                     selectedDescription('');
                     var useDescription = '';
-                    //theMarkers = viewmodel.getMarkers();
-                    //var thisMarker;
+                    theMarkers = viewmodel.getMarkers();
+                    var thisMarker;
 
 
                     thePlaces.forEach(function(individualPlace){
-                        //placeList.push(new view.Place(individualPlace));
-                        /*
-                        if (thisIndex == currentIndex) {
-                            thisPlace = new view.HighlightedPlace(individualPlace);
-                        } else {
-
-                        }
-                        */
-                        //actualIndex++;
                         thisPlace = new view.Place(individualPlace);
+// SOOOO BIZARRE!!! THIS STATEMENT WOULD ABSOLUTELY NOT WORK WITHOUT USING ()
+// although thisPlace was just instantiated, explicitly as a view.Place
+// it it not explicitly declared as one.
                         var thisCat = thisPlace.category();
+
+                        actualIndex++;
+                        //var thisMarker = viewmodel.getMarker(actualIndex);
+                        var thisMarker = theMarkers[actualIndex];
+
+                        //alert(thisMarker.title());
+                        //alert(thisMarker.getAnimation);
+                        //if (thisMarker.getAnimation() != null) {
+                        //thisMarker.setAnimation = null;
+                        //}
+
+                        //alert('bounce index is ' + bounceIndex());
 
                         if (currentCategory == 'All' || thisPlace.category() == currentCategory) {
                             thisIndex++;
-
-                            //thisMarker = theMarkers[actualIndex];
-                            //alert(thisMarker.title);
-                            //alert(actualIndex);
-                            //if (thisMarker.getAnimation() !== null) {
-                            //    thisMarker.setAnimation(null);
-                            //}
-
                             if (thisIndex == currentIndex) {
                                 thisPlace = new view.HighlightedPlace(individualPlace);
                                 selectedDescription(thisPlace.desc());
                             }
-                            //if (thisIndex == viewmodel.bounceIndex()) {
-                            //    thisMarker.setAnimation(google.maps.Animation.BOUNCE);
-                           // }
+                            //thisMarker.setAnimation(null);
+                            if (thisIndex == bounceIndex()) {
+                                thisMarker.setAnimation(google.maps.Animation.BOUNCE);
+                            }
                             placeList.push(thisPlace);
                         }
                     });
