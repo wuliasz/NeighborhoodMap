@@ -258,11 +258,13 @@
                     return model.mapStyles;
                },
 
-               /* IT SEEMS THIS ISN'T USED ANYWAY.
                getMarkers: function () {
-                    return model.markers[];
+                    return model.markers;
                },
-               */
+
+               getMarker: function (atIndex) {
+                    return model.markers[atIndex];
+               },
 
                addMarker: function (marker) {
                     model.markers.push(marker);
@@ -280,7 +282,10 @@
                          mapTypeControl: false
                     });
 
-                    var placeInfoWindow = new google.maps.InfoWindow();
+//18
+//                    var placeInfoWindow = new google.maps.InfoWindow();
+//18                var placeInfoWindow = getInfoWindow();
+                    var theInfoWindow = viewmodel.placeInfoWindow();
 
                     // ICON SIZES (21, 34) TAKEN FROM UDACITY EXAMPLES
                     var mImageDflt    = viewmodel.makeIcon('99AACC', 21, 34, 21, 34);
@@ -310,21 +315,29 @@
 
                          // anticipate and respond to click event
                          marker.addListener('click', function(){
-                              viewmodel.populateInfoWindow(this, placeInfoWindow);
+                              viewmodel.populateInfoWindow(this, theInfoWindow);
                          });
-
-
+                        viewmodel.addMarker(marker);
                     }
-                    viewmodel.addMarker(marker);
                     map.fitBounds(mapBounds);
-                    /*
-                    marker.addListener('click', function(){
-
-                    }
-                    */
 
                },
 
+
+               placeInfoWindow: function () {
+                    var returnInfoWindow;
+                    if (!(this instanceof google.maps.InfoWindow)) {
+                        return new google.maps.InfoWindow();
+                    } else {
+                        return returnInfoWindow;
+                    }
+               },
+/*
+// 18
+               getInfoWindow: function () {
+                    return new google.maps.InfoWindow();
+               },
+*/
 
                // populateInfoWindow slightly modified from UDACITY examples. i changed to MVVM.
                // getStreetView functions taken from UDACITY examples.
@@ -340,7 +353,7 @@
                         infowindow.marker = marker;
                         // Make sure the marker property is cleared if the infowindow is closed.
                         infowindow.addListener('closeclick', function() {
-                        infowindow.marker = null;
+                            infowindow.marker = null;
                         });
 
                         var thisPlace = viewmodel.getPlace(marker.id);
@@ -428,12 +441,28 @@
                     selectedCategory    = ko.observable(document.getElementById('selectedCategory'));
                     selectedCategory('All');
 
+//                    bounceIndex         = ko.observable(-1);
+
                     //this.placeListItem      = document.getElementById('placeListItem');
                     this.filterTypes        = ko.observableArray(['All','Food','Biking','Hiking']);
                     this.categorySelector   = ko.observableArray(document.getElementById('categorySelect'));
 
                     this.highlightLoc = function (index) {
+
                         selectedIndex(index);
+
+//                        bounceIndex(-1);
+                /* THIS WORKS:
+                        theMarkers = viewmodel.getMarkers();
+                        for (var i = 0; i < theMarkers.length; i++) {
+                            thisMarker = theMarkers[i];
+                            if (i == index) {
+                                thisMarker.setAnimation(google.maps.Animation.BOUNCE);
+                            } else {
+                                thisMarker.setAnimation(null);
+                            }
+                        }
+                */
 
 /*
                         var thisPlace = viewmodel.getPlace(index);
@@ -462,6 +491,21 @@
         // 1 17 18 1630 move                selectedDescription(thisPlace.desc);
 
 
+
+
+                        theMarkers = viewmodel.getMarkers();
+                        for (var i = 0; i < theMarkers.length; i++) {
+                            thisMarker = theMarkers[i];
+                            if (i == index) {
+                                thisMarker.setAnimation(google.maps.Animation.BOUNCE);
+                            } else {
+                                thisMarker.setAnimation(null);
+                            }
+                        }
+
+
+
+
                         // identify the respective marker for the selected item.
                         // change it's icon to highlight it.
                     };
@@ -487,10 +531,14 @@
 
                     //alert('curCat=' + currentCategory);
                     var thisIndex = -1;
+                    //var actualIndex = -1;
                     var thisPlace;
 
                     selectedDescription('');
                     var useDescription = '';
+                    //theMarkers = viewmodel.getMarkers();
+                    //var thisMarker;
+
 
                     thePlaces.forEach(function(individualPlace){
                         //placeList.push(new view.Place(individualPlace));
@@ -501,15 +549,27 @@
 
                         }
                         */
-                            thisPlace = new view.Place(individualPlace);
+                        //actualIndex++;
+                        thisPlace = new view.Place(individualPlace);
                         var thisCat = thisPlace.category();
 
                         if (currentCategory == 'All' || thisPlace.category() == currentCategory) {
                             thisIndex++;
+
+                            //thisMarker = theMarkers[actualIndex];
+                            //alert(thisMarker.title);
+                            //alert(actualIndex);
+                            //if (thisMarker.getAnimation() !== null) {
+                            //    thisMarker.setAnimation(null);
+                            //}
+
                             if (thisIndex == currentIndex) {
                                 thisPlace = new view.HighlightedPlace(individualPlace);
                                 selectedDescription(thisPlace.desc());
                             }
+                            //if (thisIndex == viewmodel.bounceIndex()) {
+                            //    thisMarker.setAnimation(google.maps.Animation.BOUNCE);
+                           // }
                             placeList.push(thisPlace);
                         }
                     });
