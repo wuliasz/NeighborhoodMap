@@ -562,6 +562,16 @@ IT IS STARTING TO WORK...
                     theMarkers = viewmodel.getMarkers();
                     var thisMarker;
 
+                    // first try to reset every marker animation.
+                    for (var i = 0; i < theMarkers.length; i++) {
+                        thisMarker = theMarkers[i];
+                        try {
+                            thisMarker.setAnimation(null);
+                        } catch (err) {
+                            var x = true;
+                        }
+                    }
+
 
                     thePlaces.forEach(function(individualPlace){
                         thisPlace = new view.Place(individualPlace);
@@ -588,7 +598,6 @@ IT IS STARTING TO WORK...
                                 thisPlace = new view.HighlightedPlace(individualPlace);
                                 selectedDescription(thisPlace.desc());
                             }
-                            //thisMarker.setAnimation(null);
                             if (thisIndex == bounceIndex()) {
                                 thisMarker.setAnimation(google.maps.Animation.BOUNCE);
                             }
