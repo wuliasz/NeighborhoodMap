@@ -9,6 +9,7 @@
                #actionPane {
                     height: 100%;
                     width: 22%;
+                    min-width: 200px;
                     background-color: blanchedalmond;
                     position: absolute;
                }
@@ -45,10 +46,19 @@
                     padding-top: 0.5em;
                }
 
+               #selDesc {
+                    position: absolute;
+                    top: 60%;
+                    font-family: Arial;
+                    color: darkblue;
+                    width: 90%;
+               }
+
 
                #filter {
                     position: absolute;
-                    top: 50%;
+                    top: 90%;
+                    color: cadetblue;
                }
 
                #map {
@@ -70,7 +80,28 @@
      <body>
 
           <div id="actionPane">
-               <div id="header">Neighborhood Map (18-1-16-16-14)</div>
+               <div id="header">Neighborhood Map (W)</div>
+
+
+                <div class="wikipedia-container">
+                    <h3 id="wikipedia-header" data-bind="text: wikiHeader"></h3>
+                    <div id="wikipedia-links" data-bind="foreach: wikiList">
+
+
+<!------ THE ONLY TIME KNOCKOUT EVER GIVES ME OUTPUT IS IF I BIND "text: $data"
+        IF ANYTHING ELSE IS USED... THIS LINE IS COMPLETELY OMITTED
+        WHEN IT IS OMITTED, NO DEV TOOLS ERRORS ARE RECOGNIZED.
+        THE COUNT DISPLAYED IN THE HEADER ALWAYS SHOWS THAT THERE 'ARE' RECORDS RETURNED
+
+        text: name doesn't work
+        text: descr doesn't work - i changed descr
+
+        ------>
+                        <span data-bind="text: $data" id="wikiItem"></span>
+                    </div>
+                </div>
+
+
                <!---- NOTE: NEXT TWO DIVS WERE UL/LI BUT THESE MIGHT FORMAT BETTER ---->
                <div data-bind="foreach: placeList">
                     <div data-bind="click: $parent.highlightLoc.bind($data, $index()),
@@ -84,22 +115,26 @@
 
 
                <div id="filter">
-                   <div id="catFilterLabel">Filter by Category:</div>
+                   <div id="catFilterLabel">Filter by Category:
                    <select id="categorySelect" data-bind="options: filterTypes,
                                                           value: selectedCategory,
                                                           event: {change: applyFilters}">
                    </select>
+                   <!------
                     <div data-bind="visible: selectedCategory">
                         Viewing Category:
                         <span id="selectedCategory" data-bind="text: selectedCategory "></span>
                     </div>
+                    ------>
                 </div>
-          </div>
+            </div>
           <div id="separator">&nbsp;</div>
 
           <div id="map" class="rightMap"></div>
 
-          <script src="js/lib/knockout-3.2.0.js"></script>
+          <script src="js/libs/jquery.min.js"></script>
+          <script src="js/libs/knockout-3.2.0.js"></script>
+
 
           <script>
 
@@ -152,7 +187,7 @@
                    name: 'Rails to Trails Entrance',
                    location: {lat: 41.7702602, lng: -72.8486968},
                    desc: 'Paved walkway for leisurely hiking and biking.',
-                   category: 'Biking',
+                   category: 'Biking, Hiking',
                    isFavorite: false
                 }
                ],
@@ -297,12 +332,15 @@
                     var thePlaces = viewmodel.getPlaces();
 
                     for (var i = 0; i < thePlaces.length; i++) {
+
+
                          var loc  = thePlaces[i].location;
                          var name = thePlaces[i].name;
                          var useIcon = mImageDflt;
                          if (thePlaces[i].isFavorite){
                               useIcon = mImageFav;
                          }
+
                          var marker = new google.maps.Marker({
                               map: map,
                               position: loc,
@@ -311,13 +349,22 @@
                               icon: useIcon,
                               id: i
                          });
+
                          mapBounds.extend(marker.position);
 
                          // anticipate and respond to click event
                          marker.addListener('click', function(){
+
+// it says that the marker should animate when clicked...
+// need additional location info
+
                               viewmodel.populateInfoWindow(this, theInfoWindow);
+
                          });
                         viewmodel.addMarker(marker);
+
+
+
                     }
                     map.fitBounds(mapBounds);
 
@@ -423,6 +470,10 @@
                     this.itemclass  = ko.observable('placeListHighlight');
                 },
 
+                WikiEntry: function (data) {
+                    this.name = ko.observable(data.name);
+                    this.url   = ko.observable(data.url);
+                },
 
                 init: function() {
                 // here in init we set up connections between KO and the DOM
@@ -440,8 +491,14 @@
             /* TOOK OFF THE this. FROM selectedCategory FOR THIS NEXT PHASE */
                     selectedCategory    = ko.observable(document.getElementById('selectedCategory'));
                     selectedCategory('All');
-
                     bounceIndex         = ko.observable(-1);
+
+
+                    //wikiHeader          = ko.observable(document.getElementById('wikipedia-header'));
+                    //wikiHeader('init');
+                    wikiHeader          = ko.observable('header init');
+                    wikiList            = ko.observableArray([]);
+
 
                     //this.placeListItem      = document.getElementById('placeListItem');
                     this.filterTypes        = ko.observableArray(['All','Food','Biking','Hiking']);
@@ -450,92 +507,15 @@
                     this.highlightLoc = function (index) {
 
                         selectedIndex(index);
-
                         bounceIndex(index);
-                /* THIS WORKS:
-                        theMarkers = viewmodel.getMarkers();
-                        for (var i = 0; i < theMarkers.length; i++) {
-                            thisMarker = theMarkers[i];
-                            if (i == index) {
-                                thisMarker.setAnimation(google.maps.Animation.BOUNCE);
-                            } else {
-                                thisMarker.setAnimation(null);
-                            }
-                        }
-                */
-
-/*
-                        var thisPlace = viewmodel.getPlace(index);
-                        useDescription = thisPlace.desc;
-
-                        // change the style of the selected item to highlight it.
-                        for (var i = 0; i < placeList().length; i++) {
-                            var otherPlace = placeList()[i];
-
-                            // alert('opc=' + otherPlace.name());  THIS RETURNS THE NAME PROPETY
-                            // alert('opc=' + otherPlace.desc());  THIS RETURNS THE DESCRIPTION
-                            // alert('opc=' + otherPlace.class()); this doesn't do anything
-                            // alert('opc=' + otherPlace.className()); this doesn't do anything
-                            // alert('opc=' + otherPlace.class());     this doesn't do anything
-                            //alert('opc=' + otherPlace.attr('class'));
-                            if (i == index) {
-                                otherPlace.class = 'placeListHighlight';
-                            } else {
-                               // alert('this CLASS is ' + placeList()[i].class);
-                               //thisPlace.className = "placeList";
-                                otherPlace.class = 'placeList';
-                            }
-                        }
-*/
+                        view.getWikipedia();
                         view.render();
-        // 1 17 18 1630 move                selectedDescription(thisPlace.desc);
 
-
-/*
-
-
-                        if (currentCategory == 'All' || thisPlace.category() == currentCategory) {
-                            thisIndex++;
-                            if (thisIndex == currentIndex) {
-                                thisPlace = new view.HighlightedPlace(individualPlace);
-                                selectedDescription(thisPlace.desc());
-                            }
-                            placeList.push(thisPlace);
-                        }
-*/
-
-/*
-
-IT IS STARTING TO WORK...
-
-
-                        theMarkers = viewmodel.getMarkers();
-                        for (var i = 0; i < theMarkers.length; i++) {
-
-                            var thePlace = viewmodel.getPlace(i);
 // SOOOO BIZARRE!!! THIS STATEMENT WOULD ABSOLUTELY NOT WORK USING ()
 // implied to be a view.Place... is that the difference?
-                            var theCat = thePlace.category;
+//                            var theCat = thePlace.category;
 
-                            thisMarker = theMarkers[i];
-                            if (i == index) {
-                                thisMarker.setAnimation(google.maps.Animation.BOUNCE);
-                            } else {
-                                thisMarker.setAnimation(null);
-                            }
-                        }
-*/
-
-
-
-                        // identify the respective marker for the selected item.
-                        // change it's icon to highlight it.
                     };
-
-
-                    //this.filterBy = function (filterType) {
-                    //    alert('filtering by ' + filterType);
-                    //};
 
                     this.applyFilters = function () {
                         selectedIndex(-1);
@@ -548,27 +528,25 @@ IT IS STARTING TO WORK...
 
                 render: function() {
                     placeList.removeAll();
-                    var thePlaces       = viewmodel.getPlaces();
-                    var currentCategory = selectedCategory();
-                    var currentIndex    = selectedIndex();
-
-                    //alert('curCat=' + currentCategory);
-                    var thisIndex = -1;
-                    var actualIndex = -1;
-                    var thisPlace;
+                    let thePlaces       = viewmodel.getPlaces();
+                    let currentCategory = selectedCategory();
+                    let currentIndex    = selectedIndex();
+                    let thisIndex = -1;
+                    let actualIndex = -1;
+                    let thisPlace;
 
                     selectedDescription('');
-                    var useDescription = '';
+                    let useDescription = '';
                     theMarkers = viewmodel.getMarkers();
-                    var thisMarker;
+                    let thisMarker;
 
                     // first try to reset every marker animation.
-                    for (var i = 0; i < theMarkers.length; i++) {
+                    for (let i = 0; i < theMarkers.length; i++) {
                         thisMarker = theMarkers[i];
                         try {
                             thisMarker.setAnimation(null);
                         } catch (err) {
-                            var x = true;
+                            let x = true;
                         }
                     }
 
@@ -578,21 +556,15 @@ IT IS STARTING TO WORK...
 // SOOOO BIZARRE!!! THIS STATEMENT WOULD ABSOLUTELY NOT WORK WITHOUT USING ()
 // although thisPlace was just instantiated, explicitly as a view.Place
 // it it not explicitly declared as one.
-                        var thisCat = thisPlace.category();
+                        //let thisCat = thisPlace.category();
+                        categoryMatches = (thisPlace.category().indexOf(currentCategory) >= 0);
 
                         actualIndex++;
-                        //var thisMarker = viewmodel.getMarker(actualIndex);
-                        var thisMarker = theMarkers[actualIndex];
+                        //let thisMarker = viewmodel.getMarker(actualIndex);
+                        let thisMarker = theMarkers[actualIndex];
 
-                        //alert(thisMarker.title());
-                        //alert(thisMarker.getAnimation);
-                        //if (thisMarker.getAnimation() != null) {
-                        //thisMarker.setAnimation = null;
-                        //}
-
-                        //alert('bounce index is ' + bounceIndex());
-
-                        if (currentCategory == 'All' || thisPlace.category() == currentCategory) {
+                        //if (currentCategory == 'All' || thisPlace.category() == currentCategory) {
+                        if (currentCategory == 'All' || categoryMatches ) {
                             thisIndex++;
                             if (thisIndex == currentIndex) {
                                 thisPlace = new view.HighlightedPlace(individualPlace);
@@ -604,7 +576,70 @@ IT IS STARTING TO WORK...
                             placeList.push(thisPlace);
                         }
                     });
+                },
 
+
+
+                getWikipedia: function () {
+                            /*
+                     var wikiURL = 'https://en.wikipedia.org/w/api.php?action=opensearch&search=' + city + '&format=json&callback=wikiCallBack';
+                            */
+
+                    //$wikiElem = $('#wikipedia-links');
+
+                    // clear out old data before new request
+                    // $wikiElem.text("test 1");
+                    //alert('getting 1');
+                    wikiHeader('changed');
+                    //self.wikiList('nanoo!');
+                    //alert('getting 2');
+                     var wikiURL = 'https://en.wikipedia.org/w/api.php?action=opensearch&search=hartford&format=json&callback=wikiCallBack';
+
+
+                     var wikiRequestTimeout = setTimeout(function(){
+                          wikiHeader('failed to get wikipedia resources');
+                          wikiList("failed to get wikipedia resources");
+                     }, 8000);
+
+                    $.ajax({
+                        url: wikiURL,
+                        dataType: 'jsonp',
+                        success: function (response){
+                            pages = response[1];
+
+                            wikiHeader('pages:  ' + pages.length);
+                            wikiList.removeAll();
+                            topLimit = pages.length;
+                            if (topLimit > 5) {
+                                topLimit = 5;
+                            }
+                            for (var i = 0; i < topLimit; i++) {
+                                   var link = pages[i];
+                                   var wUrl = 'http://en.wikipedia.org/wiki/' + link;
+                                   /*
+                                   wikiList.append('<li class="link">'+
+                                        '<a href="' + wUrl + '" target="_blank">'
+                                        + link + '</a>' + '</li>');
+                                    */
+
+                                  /* 1 22 18 15 58 works:
+                                   wikiList.push('<a href="' + wUrl + '" target="_blank">'
+                                        + link + '</a>');
+                                    */
+                                    wiStr = '{name: "' + link +'", url: "' + wUrl + '"}';
+                                    thisEntry = new view.WikiEntry(wiStr);
+
+                                    // if pushing a WikiEntry instance, the page only displays Object
+                                    //wikiList.push(thisEntry);
+
+                                    // is pushing the wiStr the page will diusplay the JSON,
+                                    // but i can't access the individual elements
+                                    // i followed ths JSON method from the knockout documentation.
+                                    wikiList.push(wiStr);
+                            };
+                            clearTimeout(wikiRequestTimeout);
+                        }
+                    });
                 }
             };
 
@@ -615,7 +650,5 @@ IT IS STARTING TO WORK...
           <script async defer
                src="https://maps.googleapis.com/maps/api/js?libraries=geometry,drawing&key=AIzaSyDCiCbk_jLIFqlH2s1gmzdIehfkP7JkTVU&v=3&callback=viewmodel.initializeMap">
           </script>
-
-
      </body>
 </html>
