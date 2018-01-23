@@ -1,0 +1,72 @@
+body {
+    font-family: Arial;
+    margin: 0;
+}
+
+#actionPane {
+    height: 100%;
+    width: 280px;
+    background-color: blanchedalmond;
+    position: absolute;
+    padding: 4px 0px 0px 4px;
+}
+
+#header {
+    color: darkcyan;
+    font-weight: bold;
+    text-align: center;
+}
+
+#separator {
+    height: 100%;
+    zwidth: 1%;
+    width: 12px;
+    background-color: cornsilk;
+    position: absolute;
+    zleft: 22%;
+    left: 280px;
+}
+
+.placeList {
+    font-size: smaller;
+    color: cadetblue;
+    font-weight: bold;
+    padding-top: 1em;
+    list-style-type: none;
+}
+
+.placeListHighlight {
+    font-size: larger;
+    color: cadetblue;
+    font-weight: bold;
+    padding-top: 0.5em;
+}
+
+#selDesc {
+    padding-top: 2em;
+    font-family: Arial;
+    color: darkred;
+    width: 90%;
+}
+
+#wikiItem {
+  color: darkolivegreen;
+  text-decoration: none;
+  width: 95%;
+}
+
+#filter {
+    padding-top: 2em;
+    color: cadetblue;
+}
+
+#map {
+  bottom:0px;
+  height: 100%;
+  position: absolute;
+  right: 0px;
+}
+.rightMap {
+  zleft: 23%;
+  left: 292px;
+}

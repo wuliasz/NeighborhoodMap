@@ -1,148 +1,54 @@
 <!doctype html>
 <html>
-     <head>
-          <meta charset="utf-8">
-          <title>Neighborhood Map</title>
+    <head>
+        <meta charset="utf-8">
+        <title>Neighborhood Map</title>
+        <link rel="stylesheet" href="css/style.css">
+        <!------ getting some style elements from w3schools ------>
+        <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 
-          <style>
+        </head>
+        <body data-bind="event: {resize: view.render}">
 
-               #actionPane {
-                    height: 100%;
-                    width: 22%;
-                    min-width: 200px;
-                    background-color: blanchedalmond;
-                    position: absolute;
-               }
+            <div id="actionPane" class="w3-container">
 
-               #header {
-                    font-family: Arial;
-                    color: cadetblue;
-                    font-weight: bold;
-                    text-align: center;
-               }
+                <header id="header">Neighborhood Map</header>
 
-               #separator {
-                    height: 100%;
-                    width: 1%;
-                    background-color: cornsilk;
-                    position: absolute;
-                    left: 22%;
-               }
-
-               .placeList {
-                    font-family: Arial;
-                    font-size: smaller;
-                    color: cadetblue;
-                    font-weight: bold;
-                    padding-top: 1em;
-                    list-style-type: none;
-                }
-
-               .placeListHighlight {
-                    font-family: Arial;
-                    font-size: larger;
-                    color: cadetblue;
-                    font-weight: bold;
-                    padding-top: 0.5em;
-               }
-
-               #selDesc {
-                    padding-top: 2em;
-                    font-family: Arial;
-                    color: darkblue;
-                    width: 90%;
-                    zposition: absolute;
-                    ztop: 60%;
-               }
-
-               #wikipedia-container {
-                    padding-top: 2em;
-                    zposition: absolute;
-                    ztop: 65%;
-               }
-
-               #wikiItem {
-                  text-decoration: none;
-                  width: 95%;
-               }
-
-               #filter {
-                    position: absolute;
-                    top: 90%;
-                    color: cadetblue;
-               }
-
-               #map {
-                  bottom:0px;
-                  height: 100%;
-                  position: absolute;
-                  right: 0px;
-               }
-               .rightMap {
-                  left: 23%;
-               }
-               .fullMap {
-                  left: 3%;
-               }
-
-          </style>
-
-     </head>
-     <body>
-
-          <div id="actionPane">
-               <div id="header">Neighborhood Map</div>
-
-
-               <!---- NOTE: NEXT TWO DIVS WERE UL/LI BUT THESE MIGHT FORMAT BETTER ---->
-               <div data-bind="foreach: placeList">
+                <div data-bind="foreach: placeList" class="w3-container">
                     <div data-bind="click: $parent.highlightLoc.bind($data, $index()),
                                     text: name,
                                     attr: { class: itemclass }"
-                         zclass="placeList"
-                         id="placeListItem">
+                          id="placeListItem">
                     </div>
-               </div>
+                </div>
 
-               <div id="selDesc" data-bind="text: selectedDescription"></div>
+                <div id="selDesc" class="w3-container" data-bind="text: selectedDescription"></div>
 
-                <div class="wikipedia-container">
+                <div class="w3-container">
                     <h3 id="wikipedia-header" data-bind="text: wikiHeader"></h3>
                     <div id="wikipedia-links" data-bind="foreach: wikiList">
                         <a data-bind="text: desc, attr: { href: url }" id="wikiItem" target="_blank"></a>
                     </div>
                 </div>
 
-               <div id="filter">
-                   <div id="catFilterLabel">Filter by Category:
-                   <select id="categorySelect" data-bind="options: filterTypes,
-                                                          value: selectedCategory,
-                                                          event: {change: applyFilters}">
-                   </select>
+                <div id="filter" class="w3-panel">
+                    <div id="catFilterLabel">Filter by Category:
+                        <select id="categorySelect" data-bind="options: filterTypes,
+                                                      value: selectedCategory,
+                                                      event: {change: applyFilters}">
+                        </select>
                     </div>
                 </div>
             </div>
           <div id="separator">&nbsp;</div>
+          <div id="map" class="rightMap" zclass="w3-container"></div>
 
-          <div id="map" class="rightMap"></div>
 
           <script src="js/libs/jquery.min.js"></script>
           <script src="js/libs/knockout-3.2.0.js"></script>
 
 
           <script>
-
-// TO DO 1/16/18:
-// v a) convert to formal MVVM
-// v b) add a filter to the pane.
-// v c) activate filter functionality
-// x d) consider rewriting reused code.
-// v e) activate highlighting -
-//      when selecting from list or marker:
-//      highlight the other;  show additional info
-// v f) add 3rd party api something.  such as: wikipedia, nt times, fourscquare
-//      add it to the info window.
-//   g) complete styling.
 
             ///// MODEL /////////////////////////////////////////////////////////////////////////////////////
             var model = {
@@ -286,6 +192,11 @@
                },
 
 
+               setMap: function (useMap) {
+                    model.map = useMap;
+               },
+
+
                getMapStyles: function () {
                     return model.mapStyles;
                },
@@ -318,13 +229,13 @@
                          mapTypeControl: false
                     });
 
+                    viewmodel.setMap(map);
+
                     var theInfoWindow = viewmodel.placeInfoWindow();
 
                     // ICON SIZES (21, 34) TAKEN FROM UDACITY EXAMPLES
                     var mImageDflt    = viewmodel.makeIcon('99AACC', 21, 34, 21, 34);
                     var mImageFav     = viewmodel.makeIcon('CCCC33', 21, 34, 21, 34);
-                    var mImageDfltSel = viewmodel.makeIcon('99AACC', 26, 41, 26, 41);
-                    var mImageFavSel  = viewmodel.makeIcon('CCCC33', 26, 41, 26, 41);
                     var mapBounds = new google.maps.LatLngBounds();
 
                     var thePlaces = viewmodel.getPlaces();
@@ -351,6 +262,7 @@
                         // anticipate and respond to click event
                         marker.addListener('click', function(){
                             viewmodel.populateInfoWindow(this, theInfoWindow);
+                            view.resetIndex(this.id);
                         });
                         viewmodel.addMarker(marker);
                     }
@@ -366,7 +278,6 @@
                         return returnInfoWindow;
                     }
                },
-
 
                // populateInfoWindow slightly modified from UDACITY examples. i changed to MVVM.
                // getStreetView functions taken from UDACITY examples.
@@ -453,15 +364,14 @@
                     var self = this;
 
                     placeList           = ko.observableArray([]);
-                    currentDescription  = ko.observable();
-                    selectedDescription = ko.observable(document.getElementById('selDesc'));
-                    selectedDescription('');
+                    selectedPlaceName   = ko.observable();
+                    selectedDescription = ko.observable('');
                     selectedIndex       = ko.observable();
-                    selectedCategory    = ko.observable(document.getElementById('selectedCategory'));
-                    selectedCategory('All');
+                    selectedCategory    = ko.observable('All');
                     bounceIndex         = ko.observable(-1);
                     wikiHeader          = ko.observable();
                     wikiList            = ko.observableArray([]);
+                    body                = ko.observable(document.getElementsByTagName('body')[0]);
 
                     //this.placeListItem      = document.getElementById('placeListItem');
                     this.filterTypes        = ko.observableArray(['All','Food','Biking','Hiking']);
@@ -470,8 +380,8 @@
                     this.highlightLoc = function (index) {
                         selectedIndex(index);
                         bounceIndex(index);
-                        view.getWikipedia();
                         view.render();
+                        view.getWikipedia();
                     };
 
                     this.applyFilters = function () {
@@ -493,7 +403,10 @@
                     let actualIndex = -1;
                     let thisPlace;
 
+                    selectedPlaceName('');
                     selectedDescription('');
+                    wikiHeader('');
+                    wikiList.removeAll();
                     let useDescription = '';
                     theMarkers = viewmodel.getMarkers();
                     let thisMarker;
@@ -502,6 +415,7 @@
                     for (let i = 0; i < theMarkers.length; i++) {
                         thisMarker = theMarkers[i];
                         try {
+                            thisMarker.setMap(null);
                             thisMarker.setAnimation(null);
                         } catch (err) {
                             let x = true;
@@ -513,11 +427,19 @@
                         categoryMatches = (thisPlace.category().indexOf(currentCategory) >= 0);
                         actualIndex++;
                         let thisMarker = theMarkers[actualIndex];
+                        theMap = viewmodel.getMap();
 
                         if (currentCategory == 'All' || categoryMatches ) {
                             thisIndex++;
+                            try {
+                                thisMarker.setMap(theMap);
+                            } catch (err) {
+                              let y = true;
+                            }
+
                             if (thisIndex == currentIndex) {
                                 thisPlace = new view.HighlightedPlace(individualPlace);
+                                selectedPlaceName(thisPlace.name());
                                 selectedDescription(thisPlace.desc());
                             }
                             if (thisIndex == bounceIndex()) {
@@ -533,15 +455,12 @@
                 // elements in this block inspired by Udacity exercises.
                 getWikipedia: function () {
 
-                    // get the selected place's name
-                    selectedPlace = viewmodel.getPlace(selectedIndex());
-
                     // clear out old data before new request
-                    wikiHeader('searching wikipedia for "' + selectedPlace.name + '"');
+                    wikiHeader('searching wikipedia for "' + selectedPlaceName() + '"');
                     wikiList.removeAll();
 
                     var wikiURL = 'https://en.wikipedia.org/w/api.php?action=opensearch&search='
-                                + selectedPlace.name +'&format=json&callback=wikiCallBack';
+                                + selectedPlaceName() +'&format=json&callback=wikiCallBack';
 
                     // set up a message incase of timeout.
                     var wikiRequestTimeout = setTimeout(function(){
@@ -576,6 +495,12 @@
                             clearTimeout(wikiRequestTimeout);
                           }
                     });
+                },
+
+                resetIndex: function(useIndex) {
+                  selectedIndex(useIndex);
+                  view.render();
+                  view.getWikipedia();
                 }
             };
 
