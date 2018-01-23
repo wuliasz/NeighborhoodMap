@@ -84,7 +84,7 @@
      <body>
 
           <div id="actionPane">
-               <div id="header">Neighborhood Map (W)</div>
+               <div id="header">Neighborhood Map</div>
 
 
                <!---- NOTE: NEXT TWO DIVS WERE UL/LI BUT THESE MIGHT FORMAT BETTER ---->
@@ -103,7 +103,7 @@
                     <h3 id="wikipedia-header" data-bind="text: wikiHeader"></h3>
                     <div id="wikipedia-links" data-bind="foreach: wikiList">
                         <div>
-                        <a data-bind="text: name, attr { href: url }" id="wikiItem" target="_blank"></a>
+                        <a data-bind="text: desc, attr { href: url }" id="wikiItem" target="_blank"></a>
                         </div>
                     </div>
                 </div>
@@ -114,12 +114,6 @@
                                                           value: selectedCategory,
                                                           event: {change: applyFilters}">
                    </select>
-                   <!------
-                    <div data-bind="visible: selectedCategory">
-                        Viewing Category:
-                        <span id="selectedCategory" data-bind="text: selectedCategory "></span>
-                    </div>
-                    ------>
                     </div>
                 </div>
             </div>
@@ -141,7 +135,7 @@
 // v e) activate highlighting -
 //      when selecting from list or marker:
 //      highlight the other;  show additional info
-// o f) add 3rd party api something.  such as: wikipedia, nt times, fourscquare
+// v f) add 3rd party api something.  such as: wikipedia, nt times, fourscquare
 //      add it to the info window.
 //   g) complete styling.
 
@@ -186,6 +180,7 @@
                    isFavorite: false
                 }
                ],
+
 
                // map styles from taken from:  https://snazzymaps.com/style/61/blue-essence
                mapStyles: [
@@ -272,33 +267,41 @@
                     ko.applyBindings(new view.init());
                },
 
+
                getPlaces: function () {
                     return model.places;
                },
+
 
                getPlace: function (atIndex) {
                     return model.places[atIndex];
                },
 
+
                getMap: function () {
                     return model.map;
                },
+
 
                getMapStyles: function () {
                     return model.mapStyles;
                },
 
+
                getMarkers: function () {
                     return model.markers;
                },
+
 
                getMarker: function (atIndex) {
                     return model.markers[atIndex];
                },
 
+
                addMarker: function (marker) {
                     model.markers.push(marker);
                },
+
 
                initializeMap: function () {
 
@@ -312,9 +315,6 @@
                          mapTypeControl: false
                     });
 
-//18
-//                    var placeInfoWindow = new google.maps.InfoWindow();
-//18                var placeInfoWindow = getInfoWindow();
                     var theInfoWindow = viewmodel.placeInfoWindow();
 
                     // ICON SIZES (21, 34) TAKEN FROM UDACITY EXAMPLES
@@ -327,42 +327,31 @@
                     var thePlaces = viewmodel.getPlaces();
 
                     for (var i = 0; i < thePlaces.length; i++) {
+                        var loc  = thePlaces[i].location;
+                        var name = thePlaces[i].name;
+                        var useIcon = mImageDflt;
+                        if (thePlaces[i].isFavorite){
+                            useIcon = mImageFav;
+                        }
 
+                        var marker = new google.maps.Marker({
+                            map: map,
+                            position: loc,
+                            title: name,
+                            animation: google.maps.Animation.DROP,
+                            icon: useIcon,
+                            id: i
+                        });
 
-                         var loc  = thePlaces[i].location;
-                         var name = thePlaces[i].name;
-                         var useIcon = mImageDflt;
-                         if (thePlaces[i].isFavorite){
-                              useIcon = mImageFav;
-                         }
+                        mapBounds.extend(marker.position);
 
-                         var marker = new google.maps.Marker({
-                              map: map,
-                              position: loc,
-                              title: name,
-                              animation: google.maps.Animation.DROP,
-                              icon: useIcon,
-                              id: i
-                         });
-
-                         mapBounds.extend(marker.position);
-
-                         // anticipate and respond to click event
-                         marker.addListener('click', function(){
-
-// it says that the marker should animate when clicked...
-// need additional location info
-
-                              viewmodel.populateInfoWindow(this, theInfoWindow);
-
-                         });
+                        // anticipate and respond to click event
+                        marker.addListener('click', function(){
+                            viewmodel.populateInfoWindow(this, theInfoWindow);
+                        });
                         viewmodel.addMarker(marker);
-
-
-
                     }
                     map.fitBounds(mapBounds);
-
                },
 
 
@@ -374,12 +363,7 @@
                         return returnInfoWindow;
                     }
                },
-/*
-// 18
-               getInfoWindow: function () {
-                    return new google.maps.InfoWindow();
-               },
-*/
+
 
                // populateInfoWindow slightly modified from UDACITY examples. i changed to MVVM.
                // getStreetView functions taken from UDACITY examples.
@@ -402,23 +386,12 @@
                         var useContent = '<div id="infowindowtitle">' + marker.title + '</div>';
                         useContent = useContent + '<div id="infowindow">' + thisPlace.desc + '</div>';
                         infowindow.setContent(useContent);
-                        //function setInfoWindowContent () {
-                        //if (status == google.maps.StreetViewStatus.OK) {
-
-                        //   infowindow.setContent('<div>V=Markers4' + marker.title + '</div><div id="pano"></div>');
-
-                        //} else {
-                        //  infowindow.setContent('<div>' + marker.title + '</div>' +
-                        //    '<div>No Street View Found</div>');
-                        //}
-                        //}
 
                         // Open the infowindow on the correct marker.
                         var thisMap = viewmodel.getMap();
                         infowindow.open(thisMap, marker);
                     }
                },
-
 
 
                 // makeIcon function is a modified copy of
@@ -465,10 +438,12 @@
                     this.itemclass  = ko.observable('placeListHighlight');
                 },
 
+
                 WikiEntry: function (data) {
-                    this.name = ko.observable(data.name);
+                    this.desc = ko.observable(data.desc);
                     this.url   = ko.observable(data.url);
                 },
+
 
                 init: function() {
                     // set up connections between KO and the DOM
@@ -484,7 +459,7 @@
                     selectedCategory    = ko.observable(document.getElementById('selectedCategory'));
                     selectedCategory('All');
                     bounceIndex         = ko.observable(-1);
-                    wikiHeader          = ko.observable('header init');
+                    wikiHeader          = ko.observable();
                     wikiList            = ko.observableArray([]);
 
                     //this.placeListItem      = document.getElementById('placeListItem');
@@ -506,6 +481,7 @@
 
                     view.render();
                 },
+
 
                 render: function() {
                     placeList.removeAll();
@@ -531,12 +507,10 @@
                         }
                     }
 
-
                     thePlaces.forEach(function(individualPlace){
                         thisPlace = new view.Place(individualPlace);
                         categoryMatches = (thisPlace.category().indexOf(currentCategory) >= 0);
                         actualIndex++;
-                        //let thisMarker = viewmodel.getMarker(actualIndex);
                         let thisMarker = theMarkers[actualIndex];
 
                         if (currentCategory == 'All' || categoryMatches ) {
@@ -554,38 +528,46 @@
                 },
 
 
+                // reach out to wikipedia to find info about the selected place
+                // elements in this block inspired by Udacity exercises.
                 getWikipedia: function () {
 
+                    // get the selected place's name
                     selectedPlace = viewmodel.getPlace(selectedIndex());
 
                     // clear out old data before new request
-                    wikiHeader('searching wikipedia for ' + selectedPlace);
+                    wikiHeader('searching wikipedia for "' + selectedPlace.name + '"');
                     wikiList.removeAll();
 
                     var wikiURL = 'https://en.wikipedia.org/w/api.php?action=opensearch&search='
                                 + selectedPlace.name +'&format=json&callback=wikiCallBack';
 
-                     var wikiRequestTimeout = setTimeout(function(){
-                          wikiHeader('failed to get wikipedia resources');
-                          wikiList("failed to get wikipedia resources");
-                     }, 8000);
+                    // set up a message incase of timeout.
+                    var wikiRequestTimeout = setTimeout(function(){
+                        wikiHeader('failed to get wikipedia resources');
+                    }, 8000);
 
 
+                    // display the iterpretation of the response on the page
                     $.ajax({
                         url: wikiURL,
                         dataType: 'jsonp',
                         success: function (response){
+                            // the description in the response is element 2
                             pages = response[2];
-                            wiStr = '';
-                            link = 'Unable to parse wikipedia response.';
-                            wUrl = 'x';
+                            // set up a default exception message, if response not good.
+                            description = 'Unable to parse wikipedia response.';
+                            wUrl = '#';
                             if (pages.length > 0) {
-                                link = pages[0];
-                                wUrl = 'http://en.wikipedia.org/wiki/' + link;
+                                // capture the good response info for display
+                                description = pages[0];
+                                wUrl = 'http://en.wikipedia.org/wiki/' + description;
                             }
-                            wiStr = {name: link, url: wUrl};
+                            // turn the info into json, then into an object
+                            wiStr = {desc: description, url: wUrl};
                             thisEntry = new view.WikiEntry(wiStr);
                             wikiList.push(thisEntry);
+                            wikiHeader('');
                             clearTimeout(wikiRequestTimeout);
                           }
                     });
