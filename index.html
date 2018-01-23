@@ -47,16 +47,23 @@
                }
 
                #selDesc {
-                    position: absolute;
-                    top: 60%;
+                    padding-top: 2em;
                     font-family: Arial;
                     color: darkblue;
                     width: 90%;
+                    zposition: absolute;
+                    ztop: 60%;
                }
 
                #wikipedia-container {
-                    position: absolute;
-                    top: 65%;
+                    padding-top: 2em;
+                    zposition: absolute;
+                    ztop: 65%;
+               }
+
+               #wikiItem {
+                  text-decoration: none;
+                  width: 95%;
                }
 
                #filter {
@@ -97,14 +104,12 @@
                     </div>
                </div>
 
-               <span id="selDesc" data-bind="text: selectedDescription"></span>
+               <div id="selDesc" data-bind="text: selectedDescription"></div>
 
                 <div class="wikipedia-container">
                     <h3 id="wikipedia-header" data-bind="text: wikiHeader"></h3>
                     <div id="wikipedia-links" data-bind="foreach: wikiList">
-                        <div>
-                        <a data-bind="text: desc, attr { href: url }" id="wikiItem" target="_blank"></a>
-                        </div>
+                        <a data-bind="text: desc, attr: { href: url }" id="wikiItem" target="_blank"></a>
                     </div>
                 </div>
 
@@ -139,8 +144,7 @@
 //      add it to the info window.
 //   g) complete styling.
 
-            /// // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
-            // // // // MODEL // // // // // // // // // // // // // // // // // // // // // // // // // ///
+            ///// MODEL /////////////////////////////////////////////////////////////////////////////////////
             var model = {
             map,
             markers: [],
@@ -154,14 +158,14 @@
                 {
                    name: 'Himalaya Restaurant',
                    location: {lat: 41.6277582, lng: -72.7570101},
-                   desc: 'Good Indian Food',
+                   desc: 'Good Indian Food.',
                    category: 'Food'  ,
                    isFavorite: false
                 },
                 {
                    name: 'Chauncey Peak',
                    location: {lat: 41.5574852, lng: -72.7591303},
-                   desc: 'Moderate hike with quick view of New Haven and Hartford',
+                   desc: 'Moderate hike with quick view of New Haven and Hartford.',
                    category: 'Hiking',
                    isFavorite: false
                 },
@@ -258,8 +262,7 @@
             };
 
 
-            /// // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
-            // // // // VIEW-MODEL  // // // // // // // // // // // // // // // // // // // // // // // ///
+            ///// VIEW-MODEL ////////////////////////////////////////////////////////////////////////////////
             var viewmodel = {
 
                init: function() {
@@ -414,9 +417,7 @@
             };
 
 
-
-            /// // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
-            // // // // VIEW  // // // // // // // // // // // // // // // // // // // // // // // // // ///
+            ///// VIEW //////////////////////////////////////////////////////////////////////////////////////
             var view = {
 
                 Place: function (data) {
@@ -559,9 +560,13 @@
                             description = 'Unable to parse wikipedia response.';
                             wUrl = '#';
                             if (pages.length > 0) {
-                                // capture the good response info for display
+
+                                // capture wikipedia's description
                                 description = pages[0];
-                                wUrl = 'http://en.wikipedia.org/wiki/' + description;
+                                // then get the name wikipedia will use in their url
+                                pages = response[1];
+                                linkIdentifier = pages[0];
+                                wUrl = 'http://en.wikipedia.org/wiki/' + linkIdentifier;
                             }
                             // turn the info into json, then into an object
                             wiStr = {desc: description, url: wUrl};
