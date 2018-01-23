@@ -54,6 +54,10 @@
                     width: 90%;
                }
 
+               #wikipedia-container {
+                    position: absolute;
+                    top: 65%;
+               }
 
                #filter {
                     position: absolute;
@@ -83,25 +87,6 @@
                <div id="header">Neighborhood Map (W)</div>
 
 
-                <div class="wikipedia-container">
-                    <h3 id="wikipedia-header" data-bind="text: wikiHeader"></h3>
-                    <div id="wikipedia-links" data-bind="foreach: wikiList">
-
-
-<!------ THE ONLY TIME KNOCKOUT EVER GIVES ME OUTPUT IS IF I BIND "text: $data"
-        IF ANYTHING ELSE IS USED... THIS LINE IS COMPLETELY OMITTED
-        WHEN IT IS OMITTED, NO DEV TOOLS ERRORS ARE RECOGNIZED.
-        THE COUNT DISPLAYED IN THE HEADER ALWAYS SHOWS THAT THERE 'ARE' RECORDS RETURNED
-
-        text: name doesn't work
-        text: descr doesn't work - i changed descr
-
-        ------>
-                        <span data-bind="text: $data" id="wikiItem"></span>
-                    </div>
-                </div>
-
-
                <!---- NOTE: NEXT TWO DIVS WERE UL/LI BUT THESE MIGHT FORMAT BETTER ---->
                <div data-bind="foreach: placeList">
                     <div data-bind="click: $parent.highlightLoc.bind($data, $index()),
@@ -111,8 +96,17 @@
                          id="placeListItem">
                     </div>
                </div>
-               <span id="selDesc" data-bind="text: selectedDescription"></div>
 
+               <span id="selDesc" data-bind="text: selectedDescription"></span>
+
+                <div class="wikipedia-container">
+                    <h3 id="wikipedia-header" data-bind="text: wikiHeader"></h3>
+                    <div id="wikipedia-links" data-bind="foreach: wikiList">
+                        <div>
+                        <a data-bind="text: name, attr { href: url }" id="wikiItem" target="_blank"></a>
+                        </div>
+                    </div>
+                </div>
 
                <div id="filter">
                    <div id="catFilterLabel">Filter by Category:
@@ -126,6 +120,7 @@
                         <span id="selectedCategory" data-bind="text: selectedCategory "></span>
                     </div>
                     ------>
+                    </div>
                 </div>
             </div>
           <div id="separator">&nbsp;</div>
@@ -146,7 +141,7 @@
 // v e) activate highlighting -
 //      when selecting from list or marker:
 //      highlight the other;  show additional info
-//   f) add 3rd party api something.  such as: wikipedia, nt times, fourscquare
+// o f) add 3rd party api something.  such as: wikipedia, nt times, fourscquare
 //      add it to the info window.
 //   g) complete styling.
 
@@ -156,14 +151,14 @@
             map,
             markers: [],
             places: [
-                { name: 'Modern',
+                { name: 'Modern Apizza',
                   location: {lat: 41.313897 , lng: -72.913342 },
                   desc: 'The BEST PIZZA EVER!',
                   category: 'Food',
                   isFavorite: true
                 },
                 {
-                   name: 'Himalaya',
+                   name: 'Himalaya Restaurant',
                    location: {lat: 41.6277582, lng: -72.7570101},
                    desc: 'Good Indian Food',
                    category: 'Food'  ,
@@ -476,45 +471,31 @@
                 },
 
                 init: function() {
-                // here in init we set up connections between KO and the DOM
-                // and define listeners... etc.
+                    // set up connections between KO and the DOM
+                    // and define listeners... etc.
 
                     var self = this;
 
-                    // NOTE: IMPLICIT DECLARATION WITH view LEVEL SCOPE
-                    //       its the only way i could get it to work.
                     placeList           = ko.observableArray([]);
                     currentDescription  = ko.observable();
                     selectedDescription = ko.observable(document.getElementById('selDesc'));
                     selectedDescription('');
                     selectedIndex       = ko.observable();
-            /* TOOK OFF THE this. FROM selectedCategory FOR THIS NEXT PHASE */
                     selectedCategory    = ko.observable(document.getElementById('selectedCategory'));
                     selectedCategory('All');
                     bounceIndex         = ko.observable(-1);
-
-
-                    //wikiHeader          = ko.observable(document.getElementById('wikipedia-header'));
-                    //wikiHeader('init');
                     wikiHeader          = ko.observable('header init');
                     wikiList            = ko.observableArray([]);
-
 
                     //this.placeListItem      = document.getElementById('placeListItem');
                     this.filterTypes        = ko.observableArray(['All','Food','Biking','Hiking']);
                     this.categorySelector   = ko.observableArray(document.getElementById('categorySelect'));
 
                     this.highlightLoc = function (index) {
-
                         selectedIndex(index);
                         bounceIndex(index);
                         view.getWikipedia();
                         view.render();
-
-// SOOOO BIZARRE!!! THIS STATEMENT WOULD ABSOLUTELY NOT WORK USING ()
-// implied to be a view.Place... is that the difference?
-//                            var theCat = thePlace.category;
-
                     };
 
                     this.applyFilters = function () {
@@ -553,17 +534,11 @@
 
                     thePlaces.forEach(function(individualPlace){
                         thisPlace = new view.Place(individualPlace);
-// SOOOO BIZARRE!!! THIS STATEMENT WOULD ABSOLUTELY NOT WORK WITHOUT USING ()
-// although thisPlace was just instantiated, explicitly as a view.Place
-// it it not explicitly declared as one.
-                        //let thisCat = thisPlace.category();
                         categoryMatches = (thisPlace.category().indexOf(currentCategory) >= 0);
-
                         actualIndex++;
                         //let thisMarker = viewmodel.getMarker(actualIndex);
                         let thisMarker = theMarkers[actualIndex];
 
-                        //if (currentCategory == 'All' || thisPlace.category() == currentCategory) {
                         if (currentCategory == 'All' || categoryMatches ) {
                             thisIndex++;
                             if (thisIndex == currentIndex) {
@@ -579,66 +554,40 @@
                 },
 
 
-
                 getWikipedia: function () {
-                            /*
-                     var wikiURL = 'https://en.wikipedia.org/w/api.php?action=opensearch&search=' + city + '&format=json&callback=wikiCallBack';
-                            */
 
-                    //$wikiElem = $('#wikipedia-links');
+                    selectedPlace = viewmodel.getPlace(selectedIndex());
 
                     // clear out old data before new request
-                    // $wikiElem.text("test 1");
-                    //alert('getting 1');
-                    wikiHeader('changed');
-                    //self.wikiList('nanoo!');
-                    //alert('getting 2');
-                     var wikiURL = 'https://en.wikipedia.org/w/api.php?action=opensearch&search=hartford&format=json&callback=wikiCallBack';
+                    wikiHeader('searching wikipedia for ' + selectedPlace);
+                    wikiList.removeAll();
 
+                    var wikiURL = 'https://en.wikipedia.org/w/api.php?action=opensearch&search='
+                                + selectedPlace.name +'&format=json&callback=wikiCallBack';
 
                      var wikiRequestTimeout = setTimeout(function(){
                           wikiHeader('failed to get wikipedia resources');
                           wikiList("failed to get wikipedia resources");
                      }, 8000);
 
+
                     $.ajax({
                         url: wikiURL,
                         dataType: 'jsonp',
                         success: function (response){
-                            pages = response[1];
-
-                            wikiHeader('pages:  ' + pages.length);
-                            wikiList.removeAll();
-                            topLimit = pages.length;
-                            if (topLimit > 5) {
-                                topLimit = 5;
+                            pages = response[2];
+                            wiStr = '';
+                            link = 'Unable to parse wikipedia response.';
+                            wUrl = 'x';
+                            if (pages.length > 0) {
+                                link = pages[0];
+                                wUrl = 'http://en.wikipedia.org/wiki/' + link;
                             }
-                            for (var i = 0; i < topLimit; i++) {
-                                   var link = pages[i];
-                                   var wUrl = 'http://en.wikipedia.org/wiki/' + link;
-                                   /*
-                                   wikiList.append('<li class="link">'+
-                                        '<a href="' + wUrl + '" target="_blank">'
-                                        + link + '</a>' + '</li>');
-                                    */
-
-                                  /* 1 22 18 15 58 works:
-                                   wikiList.push('<a href="' + wUrl + '" target="_blank">'
-                                        + link + '</a>');
-                                    */
-                                    wiStr = '{name: "' + link +'", url: "' + wUrl + '"}';
-                                    thisEntry = new view.WikiEntry(wiStr);
-
-                                    // if pushing a WikiEntry instance, the page only displays Object
-                                    //wikiList.push(thisEntry);
-
-                                    // is pushing the wiStr the page will diusplay the JSON,
-                                    // but i can't access the individual elements
-                                    // i followed ths JSON method from the knockout documentation.
-                                    wikiList.push(wiStr);
-                            };
+                            wiStr = {name: link, url: wUrl};
+                            thisEntry = new view.WikiEntry(wiStr);
+                            wikiList.push(thisEntry);
                             clearTimeout(wikiRequestTimeout);
-                        }
+                          }
                     });
                 }
             };
