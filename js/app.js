@@ -4,6 +4,7 @@
             var model = {
             map,
             markers: [],
+            onlyInfoWindow: null,
             places: [
                 { name: 'Modern Apizza',
                   location: {lat: 41.313897 , lng: -72.913342 },
@@ -181,7 +182,8 @@
 
                     viewmodel.setMap(map);
 
-                    var theInfoWindow = viewmodel.placeInfoWindow();
+                    //var theInfoWindow = viewmodel.placeInfoWindow();
+                    model.onlyInfoWindow = new google.maps.InfoWindow();
 
                     // ICON SIZES (21, 34) TAKEN FROM UDACITY EXAMPLES
                     var mImageDflt    = viewmodel.makeIcon('99AACC', 21, 34, 21, 34);
@@ -210,52 +212,33 @@
                         mapBounds.extend(marker.position);
 
                         // anticipate and respond to click event
-                        marker.addListener('click', function(){
-                            viewmodel.populateInfoWindow(this, theInfoWindow);
-                            view.resetIndex(this.id);
-                        });
+                        viewmodel.addTheListener(marker, model.onlyInfoWindow, thePlaces[i].desc);
+
                         viewmodel.addMarker(marker);
                     }
                     map.fitBounds(mapBounds);
                },
 
 
-               placeInfoWindow: function () {
-                    var returnInfoWindow;
-                    if (!(this instanceof google.maps.InfoWindow)) {
-                        return new google.maps.InfoWindow();
-                    } else {
-                        return returnInfoWindow;
-                    }
-               },
-
-               // populateInfoWindow slightly modified from UDACITY examples. i changed to MVVM.
-               // getStreetView functions taken from UDACITY examples.
-               // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-               // This function populates the infowindow when the marker is clicked. We'll only allow
-               // one infowindow which will open at the marker that is clicked, and populate based
-               // on that markers position.
-               populateInfoWindow: function (marker, infowindow) {
+                addTheListener: function (marker, infowindow, useDesc) {
                     // Check to make sure the infowindow is not already opened on this marker.
-                    if (infowindow.marker != marker) {
-                        // Clear the infowindow content to give the streetview time to load.
-                        infowindow.setContent('');
+                    marker.addListener('click', function () {
                         infowindow.marker = marker;
+
                         // Make sure the marker property is cleared if the infowindow is closed.
                         infowindow.addListener('closeclick', function() {
                             infowindow.marker = null;
                         });
 
-                        var thisPlace = viewmodel.getPlace(marker.id);
                         var useContent = '<div id="infowindowtitle">' + marker.title + '</div>';
-                        useContent = useContent + '<div id="infowindow">' + thisPlace.desc + '</div>';
+                        useContent = useContent + '<div id="infowindow">' + useDesc + '</div>';
                         infowindow.setContent(useContent);
 
                         // Open the infowindow on the correct marker.
                         var thisMap = viewmodel.getMap();
                         infowindow.open(thisMap, marker);
-                    }
-               },
+                    });
+                },
 
 
                 // makeIcon function is a modified copy of
@@ -409,8 +392,8 @@
                     wikiHeader('searching wikipedia for "' + selectedPlaceName() + '"');
                     wikiList.removeAll();
 
-                    var wikiURL = 'https://en.wikipedia.org/w/api.php?action=opensearch&search='
-                                + selectedPlaceName() +'&format=json&callback=wikiCallBack';
+                    var wikiURL = 'https://en.wikipedia.org/w/api.php?action=opensearch&search=';
+                    wikiURL += selectedPlaceName() +'&format=json&callback=wikiCallBack';
 
                     // set up a message incase of timeout.
                     var wikiRequestTimeout = setTimeout(function(){
