@@ -231,6 +231,7 @@ var viewmodel = {
             // Make sure the marker property is cleared if the infowindow is closed.
             infowindow.addListener('closeclick', function() {
                 infowindow.marker = null;
+                view.resetIndex(-1);
             });
 
             var useContent = '<div id="infowindowtitle">' + marker.title + '</div>';
@@ -240,6 +241,7 @@ var viewmodel = {
             // Open the infowindow on the correct marker.
             var thisMap = viewmodel.getMap();
             infowindow.open(thisMap, marker);
+            view.resetIndex(marker.id);
         });
     },
 
@@ -314,7 +316,6 @@ var view = {
             selectedIndex(index);
             bounceIndex(index);
             view.render();
-            //view.getWikipedia();
         };
 
         this.applyFilters = function () {
@@ -439,8 +440,8 @@ var view = {
 
     resetIndex: function(useIndex) {
       selectedIndex(useIndex);
+      bounceIndex(useIndex);
       view.render();
-      //view.getWikipedia();
     },
 
 
