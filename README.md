@@ -10,20 +10,19 @@
 ##### Clicking a location name on the left hand pane will:
     * Highlight that location name
     * Display a description of the place that I entered.
-    * Display a wikipedia description. The wikipedia description is also a link to more info in another tab/window.
+    * Display a wikipedia description.
+      (The wikipedia description is also a link to more info in another tab/window.)
     * Animate the marker at the selected location.
 
 ##### Clicking on the markers on the map will:
     * Activate the pane information as described above.
-    * Pop up an info window showing the name and my own description.  Infowindows, which are manually opened, must be manually closed.
+    * Pop up an info window showing the name and my own description.
 
 ##### Note about modes:
-Information obtained from one access mode will not effect any information provided from another.
-For example, InfoWindows which are opened by a marker click must be closed by a mouse click.
-Neither click will effect the information displayed in the left hand pane.
-Although a pane selection will bounce a marker to highlight the location,
-it will not interfere with manually selected InfoWindows.
-
+In a prior version there were problems managing info window pop ups
+and marker animations, such that, info windows would remain open
+after refiltering or when a different list entry was clicked.
+It doesn't happen anymore.
 
 ##### Filtering:
 Locations can be filtered by selecting the desired category in the droplist in the left hand pane.
