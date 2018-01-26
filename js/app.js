@@ -209,6 +209,11 @@ var viewmodel = {
 
             mapBounds.extend(marker.position);
 
+            // added this listener per rejected review from udacity.
+            google.maps.event.addDomListener(window, 'resize', function() {
+                map.fitBounds(mapBounds);
+            })
+
             // anticipate and respond to click event
             viewmodel.addTheListener(marker, model.onlyInfoWindow, thePlaces[i].desc);
 
@@ -302,7 +307,6 @@ var view = {
         bounceIndex         = ko.observable(-1);
         wikiHeader          = ko.observable();
         wikiList            = ko.observableArray([]);
-        body                = ko.observable(document.getElementsByTagName('body')[0]);
 
         //this.placeListItem      = document.getElementById('placeListItem');
         this.filterTypes        = ko.observableArray(['All','Food','Biking','Hiking']);
