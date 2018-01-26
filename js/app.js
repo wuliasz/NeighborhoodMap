@@ -307,16 +307,14 @@ var view = {
         wikiHeader          = ko.observable();
         wikiList            = ko.observableArray([]);
 
-        //this.placeListItem      = document.getElementById('placeListItem');
         this.filterTypes        = ko.observableArray(['All','Food','Biking','Hiking']);
-        //this.categorySelector   = ko.observableArray(document.getElementById('categorySelect'));
         this.categorySelector   = ko.observableArray();
 
         this.highlightLoc = function (index) {
             selectedIndex(index);
             bounceIndex(index);
             view.render();
-            view.getWikipedia();
+            //view.getWikipedia();
         };
 
         this.applyFilters = function () {
@@ -383,6 +381,8 @@ var view = {
                 placeList.push(thisPlace);
             }
         });
+
+        view.getWikipedia()
     },
 
 
@@ -390,49 +390,57 @@ var view = {
     // elements in this block inspired by Udacity exercises.
     getWikipedia: function () {
 
-        // clear out old data before new request
-        wikiHeader('searching wikipedia for "' + selectedPlaceName() + '"');
-        wikiList.removeAll();
+        // i moved the getWikipedia call into view.render()
+        // so that it is always called
+        // but i really don't want to run it
+        // if no place has been selected.
+        // which is the case on a page load
+        // or a filter change.
+        if (selectedPlaceName().length > 0) {
+          // clear out old data before new request
+          wikiHeader('searching wikipedia for "' + selectedPlaceName() + '"');
+          wikiList.removeAll();
 
-        var wikiURL = 'https://en.wikipedia.org/w/api.php?action=opensearch&search=';
-        wikiURL += selectedPlaceName() +'&format=json&callback=wikiCallBack';
+          var wikiURL = 'https://en.wikipedia.org/w/api.php?action=opensearch&search=';
+          wikiURL += selectedPlaceName() +'&format=json&callback=wikiCallBack';
 
-        // changed this ajax block per rejected project review from udacity.
-        $.ajax({
-            url: wikiURL,
-            dataType: 'jsonp'
-        }).done(function (response) {
-            // the description in the response is element 2
-            pages = response[2];
-            // set up a default exception message, if response not good.
-            description = 'Unable to parse wikipedia response.';
-            wUrl = '#';
-            if (pages.length > 0) {
+          // changed this ajax block per rejected project review from udacity.
+          $.ajax({
+              url: wikiURL,
+              dataType: 'jsonp'
+          }).done(function (response) {
+              // the description in the response is element 2
+              pages = response[2];
+              // set up a default exception message, if response not good.
+              description = 'Unable to parse wikipedia response.';
+              wUrl = '#';
+              if (pages.length > 0) {
 
-                // capture wikipedia's description
-                description = pages[0];
-                // then get the name wikipedia will use in their url
-                pages = response[1];
-                linkIdentifier = pages[0];
-                wUrl = 'http://en.wikipedia.org/wiki/' + linkIdentifier;
-            }
-            // turn the info into json, then into an object
-            wiStr = {desc: description, url: wUrl};
-            thisEntry = new view.WikiEntry(wiStr);
-            wikiList.push(thisEntry);
-            // clear the error information label upon successful
-            // retrieval and parsing of wikipedia info.
-            wikiHeader('');
-        }).fail(function (jqXHR, textStatus) {
-            // display information when an error occurs
-            wikiHeader('Wikipedia lookup failed:  ' + textStatus);
-        });
+                  // capture wikipedia's description
+                  description = pages[0];
+                  // then get the name wikipedia will use in their url
+                  pages = response[1];
+                  linkIdentifier = pages[0];
+                  wUrl = 'http://en.wikipedia.org/wiki/' + linkIdentifier;
+              }
+              // turn the info into json, then into an object
+              wiStr = {desc: description, url: wUrl};
+              thisEntry = new view.WikiEntry(wiStr);
+              wikiList.push(thisEntry);
+              // clear the error information label upon successful
+              // retrieval and parsing of wikipedia info.
+              wikiHeader('');
+          }).fail(function (jqXHR, textStatus) {
+              // display information when an error occurs
+              wikiHeader('Wikipedia lookup failed:  ' + textStatus);
+          });
+        }
     },
 
     resetIndex: function(useIndex) {
       selectedIndex(useIndex);
       view.render();
-      view.getWikipedia();
+      //view.getWikipedia();
     },
 
 
