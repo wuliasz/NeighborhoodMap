@@ -30,6 +30,14 @@ Locations can be filtered by selecting the desired category in the droplist in t
 
 
 
+## Setup
+
+To use the neighborhood map,
+1. Copy the entire repository into a folder on your computer
+2. Open the index.html file in your browser.
+
+
+
 ## Development Sources
 
 Code sources and inspirations cited in the source.
