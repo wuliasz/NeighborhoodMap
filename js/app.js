@@ -166,6 +166,11 @@ var viewmodel = {
    },
 
 
+   getInfoWindow: function() {
+      return model.onlyInfoWindow;
+   },
+
+
    initializeMap: function () {
 
         var map       =  viewmodel.getMap();
@@ -209,17 +214,16 @@ var viewmodel = {
 
             mapBounds.extend(marker.position);
 
-            // added this listener per rejected review from udacity.
-            google.maps.event.addDomListener(window, 'resize', function() {
-                map.fitBounds(mapBounds);
-            })
-
             // anticipate and respond to click event
             viewmodel.addTheListener(marker, model.onlyInfoWindow, thePlaces[i].desc);
 
             viewmodel.addMarker(marker);
         }
         map.fitBounds(mapBounds);
+        // added this listener per rejected review from udacity.
+        google.maps.event.addDomListener(window, 'resize', function() {
+            map.fitBounds(mapBounds);
+        })
    },
 
 
@@ -334,6 +338,7 @@ var view = {
         let actualIndex = -1;
         let thisPlace;
 
+
         selectedPlaceName('');
         selectedDescription('');
         wikiHeader('');
@@ -379,6 +384,18 @@ var view = {
         });
 
         view.getWikipedia()
+
+        try {
+            let theInfoWindow = viewmodel.getInfoWindow();
+            let iwMarker = theInfoWindow.marker;
+            let iwmID = iwMarker.id;
+            if (currentIndex != iwmID ) {
+                    theInfoWindow.close();
+            }
+        } catch (err) {
+            console.log("Error attempting to close info window:  " + err);
+        }
+
     },
 
 
