@@ -310,7 +310,8 @@ var view = {
 
         //this.placeListItem      = document.getElementById('placeListItem');
         this.filterTypes        = ko.observableArray(['All','Food','Biking','Hiking']);
-        this.categorySelector   = ko.observableArray(document.getElementById('categorySelect'));
+        //this.categorySelector   = ko.observableArray(document.getElementById('categorySelect'));
+        this.categorySelector   = ko.observableArray();
 
         this.highlightLoc = function (index) {
             selectedIndex(index);
