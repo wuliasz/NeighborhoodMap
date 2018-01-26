@@ -290,7 +290,7 @@ var view = {
 
     WikiEntry: function (data) {
         this.desc = ko.observable(data.desc);
-        this.url   = ko.observable(data.url);
+        this.url  = ko.observable(data.url);
     },
 
 
@@ -303,9 +303,8 @@ var view = {
         placeList           = ko.observableArray([]);
         selectedPlaceName   = ko.observable();
         selectedDescription = ko.observable('');
-        selectedIndex       = ko.observable();
+        selectedIndex       = ko.observable(-1);
         selectedCategory    = ko.observable('All');
-        bounceIndex         = ko.observable(-1);
         wikiHeader          = ko.observable();
         wikiList            = ko.observableArray([]);
 
@@ -314,13 +313,11 @@ var view = {
 
         this.highlightLoc = function (index) {
             selectedIndex(index);
-            bounceIndex(index);
             view.render();
         };
 
         this.applyFilters = function () {
             selectedIndex(-1);
-            bounceIndex(-1);
             view.render();
         };
 
@@ -368,15 +365,13 @@ var view = {
                 try {
                     thisMarker.setMap(theMap);
                 } catch (err) {
-                  let y = true;
+                  console.log("set Map error:  " + err);
                 }
 
                 if (thisIndex == currentIndex) {
                     thisPlace = new view.HighlightedPlace(individualPlace);
                     selectedPlaceName(thisPlace.name());
                     selectedDescription(thisPlace.desc());
-                }
-                if (thisIndex == bounceIndex()) {
                     thisMarker.setAnimation(google.maps.Animation.BOUNCE);
                 }
                 placeList.push(thisPlace);
@@ -440,7 +435,6 @@ var view = {
 
     resetIndex: function(useIndex) {
       selectedIndex(useIndex);
-      bounceIndex(useIndex);
       view.render();
     },
 
