@@ -33,8 +33,13 @@ Locations can be filtered by selecting the desired category in the droplist in t
 ## Setup
 
 To use the neighborhood map,
-1. Copy the entire repository into a folder on your computer
-2. Open the index.html file in your browser.
+1. Create a new folder somewhere on your computer.
+1. Navigate to this project on github in your browser: https://github.com/wuliasz/NeighborhoodMap
+1. Click on the **Clone or download** button on the github repository page.
+1. Copy the URL specified by github.
+1. Open a command prompt and navigate to the folder you created in step 1.
+1. Enter **git clone ** followed by the URL copied in step 4.
+1. When the download completes, open the index.html file in your browser.
 
 
 

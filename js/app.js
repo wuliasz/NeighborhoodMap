@@ -260,7 +260,6 @@ var viewmodel = {
         };
         return icon;
     }
-
 };
 
 
@@ -398,38 +397,35 @@ var view = {
         var wikiURL = 'https://en.wikipedia.org/w/api.php?action=opensearch&search=';
         wikiURL += selectedPlaceName() +'&format=json&callback=wikiCallBack';
 
-        // set up a message incase of timeout.
-        var wikiRequestTimeout = setTimeout(function(){
-            wikiHeader('failed to get wikipedia resources');
-        }, 8000);
-
-
-        // display the iterpretation of the response on the page
+        // changed this ajax block per rejected project review from udacity.
         $.ajax({
             url: wikiURL,
-            dataType: 'jsonp',
-            success: function (response){
-                // the description in the response is element 2
-                pages = response[2];
-                // set up a default exception message, if response not good.
-                description = 'Unable to parse wikipedia response.';
-                wUrl = '#';
-                if (pages.length > 0) {
+            dataType: 'jsonp'
+        }).done(function (response) {
+            // the description in the response is element 2
+            pages = response[2];
+            // set up a default exception message, if response not good.
+            description = 'Unable to parse wikipedia response.';
+            wUrl = '#';
+            if (pages.length > 0) {
 
-                    // capture wikipedia's description
-                    description = pages[0];
-                    // then get the name wikipedia will use in their url
-                    pages = response[1];
-                    linkIdentifier = pages[0];
-                    wUrl = 'http://en.wikipedia.org/wiki/' + linkIdentifier;
-                }
-                // turn the info into json, then into an object
-                wiStr = {desc: description, url: wUrl};
-                thisEntry = new view.WikiEntry(wiStr);
-                wikiList.push(thisEntry);
-                wikiHeader('');
-                clearTimeout(wikiRequestTimeout);
-              }
+                // capture wikipedia's description
+                description = pages[0];
+                // then get the name wikipedia will use in their url
+                pages = response[1];
+                linkIdentifier = pages[0];
+                wUrl = 'http://en.wikipedia.org/wiki/' + linkIdentifier;
+            }
+            // turn the info into json, then into an object
+            wiStr = {desc: description, url: wUrl};
+            thisEntry = new view.WikiEntry(wiStr);
+            wikiList.push(thisEntry);
+            // clear the error information label upon successful
+            // retrieval and parsing of wikipedia info.
+            wikiHeader('');
+        }).fail(function (jqXHR, textStatus) {
+            // display information when an error occurs
+            wikiHeader('Wikipedia lookup failed:  ' + textStatus);
         });
     },
 
@@ -437,9 +433,12 @@ var view = {
       selectedIndex(useIndex);
       view.render();
       view.getWikipedia();
+    },
+
+
+    googleMapError: function () {
+        wikiHeader('Unable to load the google map!');
     }
 };
 
 viewmodel.init();
-
-
