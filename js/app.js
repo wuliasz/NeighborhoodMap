@@ -223,7 +223,7 @@ var viewmodel = {
         // added this listener per rejected review from udacity.
         google.maps.event.addDomListener(window, 'resize', function() {
             map.fitBounds(mapBounds);
-        })
+        });
    },
 
 
@@ -383,7 +383,7 @@ var view = {
             }
         });
 
-        view.getWikipedia()
+        view.getWikipedia();
 
         try {
             let theInfoWindow = viewmodel.getInfoWindow();
